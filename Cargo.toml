@@ -21,7 +21,7 @@ name = "cairo"
 path = "./cairo-sys-rs"
 
 [dependencies.glib]
-git = "https://github.com/rgtk/glib"
+git = "https://github.com/gtk-rs/glib"
 
 [dependencies]
 libc = "0.1"
