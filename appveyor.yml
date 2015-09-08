@@ -56,8 +56,9 @@ build_script:
   - rustc -V
   - mkdir .cargo
   - echo paths = ["."] > .cargo\config
-  - git clone -q --depth 50 -b pending https://github.com/gtk-rs/examples _examples
+  - git clone -q --depth 50 -b crate https://github.com/gtk-rs/examples _examples
   - cd _examples
+  - bash -c "./git_deps.sh glib gdk gtk pango sys"
   - "echo Features: %FEATURES%"
   - cargo build --features "%FEATURES%"
 
