@@ -1,10 +1,10 @@
-// Copyright 2013-2015, The Rust-GNOME Project Developers.
+// Copyright 2013-2015, The Gtk-rs Project Developers.
 // See the COPYRIGHT file at the top-level directory of this distribution.
 // Licensed under the MIT license, see the LICENSE file or <http://opensource.org/licenses/MIT>
 
 //! Sources for drawing
 
-#![cfg_attr(not(feature = "cairo_1_12"), allow(unused_imports))]
+#![cfg_attr(not(cairo_1_12), allow(unused_imports))]
 
 use libc::{c_double, c_int, c_uint};
 use std::mem::transmute;
@@ -35,9 +35,9 @@ pub fn wrap_pattern<'a>(ptr: *mut cairo_pattern_t) -> Box<Pattern + 'a> {
         PatternType::Surface          => Box::new(SurfacePattern::wrap(ptr)) as Box<Pattern>,
         PatternType::LinearGradient   => Box::new(LinearGradient::wrap(ptr)) as Box<Pattern>,
         PatternType::RadialGradient   => Box::new(RadialGradient::wrap(ptr)) as Box<Pattern>,
-        #[cfg(feature = "cairo_1_12")]
+        #[cfg(cairo_1_12)]
         PatternType::Mesh             => Box::new(Mesh::wrap(ptr))           as Box<Pattern>,
-        #[cfg(feature = "cairo_1_12")]
+        #[cfg(cairo_1_12)]
         PatternType::RasterSource     => panic!("Not implemented")
     }
 }
@@ -341,7 +341,7 @@ impl SurfacePattern {
     //pub fn cairo_pattern_get_surface(pattern: *mut cairo_pattern_t, surface: **mut cairo_surface_t) -> Status;
 }
 
-#[cfg(feature = "cairo_1_12")]
+#[cfg(cairo_1_12)]
 #[derive(Clone, PartialEq, PartialOrd, Copy)]
 pub enum MeshCorner {
     MeshCorner0,
@@ -350,10 +350,10 @@ pub enum MeshCorner {
     MeshCorner3
 }
 
-#[cfg(feature = "cairo_1_12")]
+#[cfg(cairo_1_12)]
 pattern_type!(Mesh);
 
-#[cfg(feature = "cairo_1_12")]
+#[cfg(cairo_1_12)]
 impl Mesh {
     /// Create a new mesh pattern.
     /// 

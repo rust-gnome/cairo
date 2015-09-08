@@ -1,4 +1,4 @@
-// Copyright 2013-2015, The Rust-GNOME Project Developers.
+// Copyright 2013-2015, The Gtk-rs Project Developers.
 // See the COPYRIGHT file at the top-level directory of this distribution.
 // Licensed under the MIT license, see the LICENSE file or <http://opensource.org/licenses/MIT>
 
@@ -37,7 +37,9 @@ pub use self::enums::{
     LineCap,
     LineJoin,
     Operator,
-    PathDataType
+    PathDataType,
+    Format,
+    SurfaceType,
 };
 
 pub use self::patterns::{
@@ -52,7 +54,7 @@ pub use self::patterns::{
     SurfacePattern,
 };
 
-#[cfg(feature = "cairo_1_12")]
+#[cfg(cairo_1_12)]
 pub use self::patterns::{
     Mesh,
     MeshCorner,
@@ -74,8 +76,15 @@ pub use self::matrices::{
     MatrixTrait,
 };
 
+pub use image_surface::ImageSurface;
+pub use surface::Surface;
+
+pub mod prelude;
+
 mod fonts;
 mod context;
+mod image_surface;
 mod paths;
 mod patterns;
+mod surface;
 mod matrices;
