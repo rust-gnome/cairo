@@ -8,10 +8,10 @@ links = "cairo"
 description = "FFI bindings to Cairo"
 repository = "https://github.com/gtk-rs/cairo"
 license = "MIT"
-homepage = "https://github.com/gtk-rs/cairo"
-documentation = "https://github.com/gtk-rs/cairo"
+homepage = "http://gtk-rs.org/"
+documentation = "http://gtk-rs.org/docs/cairo_sys/"
 
-keywords = ["cairo", "ffi", "gtk", "gnome"]
+keywords = ["cairo", "ffi", "gtk", "gtk-rs", "gnome"]
 
 [lib]
 name = "cairo_sys"
