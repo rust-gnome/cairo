@@ -1,6 +1,6 @@
 [package]
 name = "cairo-rs"
-version = "0.0.4"
+version = "0.0.5"
 authors = ["The Gtk-rs Project Developers"]
 build = "build.rs"
 
@@ -20,5 +20,5 @@ name = "cairo"
 [dependencies]
 libc = "0.1"
 c_vec = "~1.0"
-cairo-sys-rs = "^0"
-glib = "^0"
+cairo-sys-rs = "0.2.0"
+glib = "0.0.4"
