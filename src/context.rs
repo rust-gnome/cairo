@@ -6,7 +6,7 @@ use glib::translate::*;
 use c_vec::CVec;
 use std::mem::transmute;
 use libc::{c_double, c_int};
-use ::paths::Path;
+use paths::{BoxedPath, Path};
 use ::fonts::{TextExtents, TextCluster, FontExtents, ScaledFont, FontOptions, FontFace, Glyph};
 use ::matrices::{Matrix, MatrixTrait};
 use ffi::enums::{
@@ -694,21 +694,21 @@ impl Context {
 
     // paths stuff
 
-    pub fn copy_path(&self) -> Path {
+    pub fn copy_path(&self) -> BoxedPath {
         unsafe {
-            Path::wrap(ffi::cairo_copy_path(self.0))
+            from_glib_full(ffi::cairo_copy_path(self.0))
         }
     }
 
-    pub fn copy_path_flat(&self) -> Path {
+    pub fn copy_path_flat(&self) -> BoxedPath {
         unsafe {
-            Path::wrap(ffi::cairo_copy_path_flat(self.0))
+            from_glib_full(ffi::cairo_copy_path_flat(self.0))
         }
     }
 
     pub fn append_path(&self, path: &Path) {
         unsafe {
-            ffi::cairo_append_path(self.0, path.get_ptr())
+            ffi::cairo_append_path(self.0, path.to_glib_none().0)
         }
     }
 

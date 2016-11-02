@@ -2,9 +2,11 @@
 // See the COPYRIGHT file at the top-level directory of this distribution.
 // Licensed under the MIT license, see the LICENSE file or <http://opensource.org/licenses/MIT>
 
-use std::mem::transmute;
 use std::iter::Iterator;
+use std::mem::transmute;
+use std::ops::{Deref, DerefMut};
 use c_vec::CVec;
+use glib::translate::*;
 use ffi::enums::PathDataType;
 use ffi::{
     cairo_path_t,
@@ -12,48 +14,68 @@ use ffi::{
 };
 use ffi;
 
-pub struct Path(*mut cairo_path_t);
+pub struct Path(cairo_path_t);
 
 impl Path {
-    #[doc(hidden)]
-    pub fn get_ptr(&self) -> *mut cairo_path_t {
-        let Path(ptr) = *self;
-
-        ptr
-    }
-
-    pub fn ensure_status(&self) {
-        unsafe {
-            let ptr: *mut cairo_path_t = self.get_ptr();
-            (*ptr).status.ensure_valid()
-        }
-    }
-
-    #[doc(hidden)]
-    pub fn wrap(pointer: *mut cairo_path_t) -> Path {
-        Path(pointer)
+    pub fn ensure_status(&mut self) {
+        self.0.status.ensure_valid()
     }
 
     pub fn iter(&self) -> PathSegments {
         unsafe {
-            let ptr: *mut cairo_path_t = self.get_ptr();
-            let length = (*ptr).num_data as usize;
-            let data_ptr = (*ptr).data;
-
+            let length = self.0.num_data as usize;
             PathSegments {
-                data: CVec::new(data_ptr, length),
+                data: CVec::new(self.0.data, length),
                 i: 0,
-                num_data: length
+                num_data: length,
             }
         }
     }
 }
 
-impl Drop for Path {
+impl<'a> ToGlibPtr<'a, *const ffi::cairo_path_t> for &'a Path {
+    type Storage = &'a Path;
+
+    #[inline]
+    fn to_glib_none(&self) -> Stash<'a, *const ffi::cairo_path_t, &'a Path> {
+        Stash(&self.0, *self)
+    }
+}
+
+pub struct BoxedPath(*mut Path);
+
+impl Deref for BoxedPath {
+    type Target = Path;
+
+    fn deref(&self) -> &Path {
+        unsafe { &*self.0 }
+    }
+}
+
+impl DerefMut for BoxedPath {
+    fn deref_mut(&mut self) -> &mut Path {
+        unsafe { &mut *self.0 }
+    }
+}
+
+impl Drop for BoxedPath {
     fn drop(&mut self) {
         unsafe{
-            ffi::cairo_path_destroy(self.get_ptr());
+            ffi::cairo_path_destroy(self.0 as *mut cairo_path_t);
         }
+    }
+}
+
+impl FromGlibPtr<*mut ffi::cairo_path_t> for BoxedPath {
+    #[inline]
+    unsafe fn from_glib_none(_: *mut ffi::cairo_path_t) -> BoxedPath {
+        panic!()
+    }
+
+    #[inline]
+    unsafe fn from_glib_full(ptr: *mut ffi::cairo_path_t) -> BoxedPath {
+        assert!(!ptr.is_null());
+        BoxedPath(ptr as *mut Path)
     }
 }
 

@@ -16,6 +16,7 @@ pub use context::{
 };
 
 pub use paths::{
+    BoxedPath,
     Path,
     PathSegments,
     PathSegment
