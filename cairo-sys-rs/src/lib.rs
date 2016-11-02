@@ -236,7 +236,7 @@ extern "C" {
     pub fn cairo_copy_path(cr: *mut cairo_t) -> *mut cairo_path_t;
     pub fn cairo_copy_path_flat(cr: *mut cairo_t) -> *mut cairo_path_t;
     pub fn cairo_path_destroy(path: *mut cairo_path_t);
-    pub fn cairo_append_path(cr: *mut cairo_t, path: *mut cairo_path_t);
+    pub fn cairo_append_path(cr: *mut cairo_t, path: *const cairo_path_t);
     pub fn cairo_has_current_point(cr: *mut cairo_t) -> cairo_bool_t;
     pub fn cairo_get_current_point(cr: *mut cairo_t, x: *mut c_double, y: *mut c_double);
     pub fn cairo_new_path(cr: *mut cairo_t);
