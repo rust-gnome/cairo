@@ -78,6 +78,24 @@ impl ImageSurface {
     pub fn get_width(&self) -> i32 {
         unsafe { ffi::cairo_image_surface_get_width(self.to_glib_none().0) }
     }
+    
+    #[cfg(feature = "png")]
+    pub fn to_png(&self, filename : String) -> Status {
+       use std::ffi::CString;
+       match CString::new(filename) {
+           Ok(file_name) =>  unsafe { ffi::cairo_surface_write_to_png(self.to_glib_none().0, file_name.as_ptr()) },
+           _ => Status::WriteError
+       }
+    }
+    
+    #[cfg(feature = "png")]
+	pub fn from_png(filename : String) -> Option<ImageSurface> {
+       use std::ffi::CString;
+       match CString::new(filename.into_bytes()) {
+         Ok(file_name) => Some( unsafe { from_glib_full(ffi::cairo_image_surface_create_from_png(file_name.as_ptr())) } ),
+         _ => None
+       }
+    }
 }
 
 static IMAGE_SURFACE_DATA: () = ();
