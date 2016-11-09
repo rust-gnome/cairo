@@ -469,9 +469,9 @@ extern "C" {
     #[cfg(feature = "png")]
     pub fn cairo_surface_write_to_png_stream(surface: *mut cairo_surface_t, write_func: cairo_write_func_t, closure: *mut c_void) -> Status;
     #[cfg(feature = "png")]
-    pub fn cairo_image_surface_create_from_png(filename : *const u8) -> *mut cairo_surface_t;
+    pub fn cairo_image_surface_create_from_png(filename : *const c_char) -> *mut cairo_surface_t;
     #[cfg(feature = "png")]
-    pub fn cairo_surface_write_to_png(surface: *mut cairo_surface_t, filename : *const u8) -> Status;
+    pub fn cairo_surface_write_to_png(surface: *mut cairo_surface_t, filename : *const c_char) -> Status;
 
     #[cfg(feature = "xlib")]
     pub fn cairo_xlib_surface_create(dpy: *mut xlib::Display,
