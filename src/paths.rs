@@ -3,8 +3,8 @@
 // Licensed under the MIT license, see the LICENSE file or <http://opensource.org/licenses/MIT>
 
 use std::mem::transmute;
+use std::slice::from_raw_parts;
 use std::iter::Iterator;
-use c_vec::CVec;
 use ffi::enums::PathDataType;
 use ffi::{
     cairo_path_t,
@@ -39,7 +39,11 @@ impl Path {
             let ptr: *mut cairo_path_t = self.get_ptr();
             let length = (*ptr).num_data as usize;
             let data_ptr = (*ptr).data;
-            let data_vec = if length != 0 { Some(CVec::new(data_ptr, length)) } else { None };
+            let data_vec = if length != 0 {
+                let result = from_raw_parts(data_ptr, length);
+                // MISSING copy_lifetime(self, result);
+                Some(result)
+            } else { None };
 
             PathSegments {
                 data: data_vec,
@@ -66,13 +70,13 @@ pub enum PathSegment {
     ClosePath
 }
 
-pub struct PathSegments {
-    data: Option<CVec<[f64; 2]>>,
+pub struct PathSegments<'a> {
+    data: Option<&'a[[f64; 2]]>,
     i: usize,
     num_data: usize
 }
 
-impl Iterator for PathSegments {
+impl<'a> Iterator for PathSegments<'a> {
     type Item = PathSegment;
 
     fn next(&mut self) -> Option<PathSegment> {
