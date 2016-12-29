@@ -3,8 +3,8 @@
 // Licensed under the MIT license, see the LICENSE file or <http://opensource.org/licenses/MIT>
 
 use glib::translate::*;
-use c_vec::CVec;
 use std::mem::transmute;
+use std::slice::from_raw_parts;
 use libc::{c_double, c_int};
 use ::paths::Path;
 use ::fonts::{TextExtents, TextCluster, FontExtents, ScaledFont, FontOptions, FontFace, Glyph};
@@ -26,12 +26,12 @@ use ffi::enums::{Status, Antialias, LineCap, LineJoin, FillRule};
 use ::patterns::{wrap_pattern, Pattern};
 use surface::Surface;
 
-pub struct RectangleVec {
+pub struct RectangleVec<'a> {
     ptr: *mut cairo_rectangle_list_t,
-    pub rectangles: CVec<Rectangle>,
+    pub rectangles: &'a[Rectangle], // Vec<Rectangle>,
 }
 
-impl Drop for RectangleVec {
+impl<'a> Drop for RectangleVec<'a> {
     fn drop(&mut self) {
         unsafe {
             ffi::cairo_rectangle_list_destroy(self.ptr);
@@ -355,7 +355,7 @@ impl Context {
 
             RectangleVec {
                 ptr: rectangle_list,
-                rectangles: CVec::new((*rectangle_list).rectangles,
+                rectangles: from_raw_parts((*rectangle_list).rectangles,
                                       (*rectangle_list).num_rectangles as usize),
             }
         }
