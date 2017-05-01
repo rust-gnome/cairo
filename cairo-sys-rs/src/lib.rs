@@ -490,6 +490,10 @@ extern "C" {
     pub fn cairo_image_surface_create_from_png_stream(read_func: cairo_read_func_t, closure: *mut c_void) -> *mut cairo_surface_t;
     #[cfg(feature = "png")]
     pub fn cairo_surface_write_to_png_stream(surface: *mut cairo_surface_t, write_func: cairo_write_func_t, closure: *mut c_void) -> Status;
+    #[cfg(feature = "png")]
+    pub fn cairo_image_surface_create_from_png(filename : *const c_char) -> *mut cairo_surface_t;
+    #[cfg(feature = "png")]
+    pub fn cairo_surface_write_to_png(surface: *mut cairo_surface_t, filename : *const c_char) -> Status;
 
     // CAIRO XCB
     #[cfg(feature = "xcb")]
