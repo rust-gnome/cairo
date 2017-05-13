@@ -15,7 +15,7 @@ use ffi::enums::{
 };
 
 #[derive(Debug)]
-pub struct Surface(*mut ffi::cairo_surface_t);
+pub struct Surface(pub *mut ffi::cairo_surface_t);
 
 impl Surface {
     #[doc(hidden)]
