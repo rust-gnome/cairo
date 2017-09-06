@@ -5,24 +5,35 @@
 use std::ffi::CString;
 use std::ops::Deref;
 use std::path::Path;
+use std::io::Write;
+use std::slice;
+use std::rc::Rc;
 
-extern crate libc;
-use libc::{c_char, c_double};
-
+use libc::{c_void, c_char, c_uchar, c_uint, c_double};
 use ffi;
-use ffi::enums::SurfaceType;
+use ffi::enums::{Status, SurfaceType};
 
 use surface::{Surface, SurfaceExt};
 
 #[cfg(feature = "use_glib")]
 use glib::translate::*;
 
-pub struct PDFSurface(Surface);
+pub struct PDFSurface(Surface, Option<Rc<Writer>>);
+
+pub struct Writer(*mut Box<Write>);
+
+impl Drop for Writer {
+    fn drop(&mut self) {
+        unsafe {
+            Box::<Box<Write>>::from_raw(self.0);
+        }
+    }
+}
 
 impl PDFSurface {
     pub fn from(surface: Surface) -> Result<PDFSurface, Surface> {
         if surface.get_type() == SurfaceType::Pdf {
-            Ok(PDFSurface(surface))
+            Ok(PDFSurface(surface, None))
         } else {
             Err(surface)
         }
@@ -39,6 +50,31 @@ impl PDFSurface {
         let s = filename.as_ref().to_string_lossy().into_owned();
         let file = CString::new(s).unwrap();
         unsafe { Self::from_raw_full(ffi::cairo_pdf_surface_create(file.as_ptr(), width, height)) }
+    }
+
+    pub fn create_writer<W: Write + 'static>(writer: W, width: f64, height: f64) -> PDFSurface
+    {
+        unsafe extern fn write_to(writer: *mut c_void, data: *mut c_uchar, length: c_uint) -> Status
+        {
+            let mut writer: Box<Box<Write>> = Box::from_raw(writer as *mut _);
+            let data = slice::from_raw_parts(data, length as usize);
+            let result = match writer.write_all(data) {
+                Ok(_) => Status::Success,
+                Err(_) => Status::WriteError,
+            };
+
+            Box::into_raw(writer);
+            result
+        }
+
+        let writer: Box<Write> = Box::new(writer);
+        let writer: *mut Box<Write> = Box::into_raw(Box::new(writer));
+
+        unsafe {
+            PDFSurface(
+                Surface::from_raw_full(ffi::cairo_pdf_surface_create_for_stream(Some(write_to), writer as *mut _, width, height)),
+                Some(Rc::new(Writer(writer))))
+        }
     }
 }
 
@@ -58,7 +94,7 @@ impl Deref for PDFSurface {
 
 impl Clone for PDFSurface {
     fn clone(&self) -> PDFSurface {
-        PDFSurface(self.0.clone())
+        PDFSurface(self.0.clone(), self.1.clone())
     }
 }
 
