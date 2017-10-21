@@ -13,16 +13,31 @@ extern crate x11;
 extern crate winapi;
 #[cfg(all(not(windows), feature = "dox"))]
 pub mod winapi {
-   use libc::c_void;
+    use libc::c_void;
 
-   #[repr(C)]
-   pub struct HDC(c_void);
+    #[repr(C)]
+    pub struct HDC(c_void);
 }
 
 use libc::{c_void, c_int, c_uint, c_char, c_uchar, c_double, c_ulong};
 
 #[cfg(any(feature = "xlib", feature = "dox"))]
 use x11::xlib;
+#[cfg(all(not(feature = "xlib"), feature = "dox"))]
+pub mod xlib {
+    use libc::c_void;
+
+    #[repr(C)]
+    pub struct Display(c_void);
+    #[repr(C)]
+    pub struct Drawable(c_void);
+    #[repr(C)]
+    pub struct Visual(c_void);
+    #[repr(C)]
+    pub struct Pixmap(c_void);
+    #[repr(C)]
+    pub struct Screen(c_void);
+}
 
 pub mod enums;
 
