@@ -20,6 +20,7 @@ build_script:
   - mkdir .cargo
   - echo paths = ["."] > .cargo\config
   - git clone -q --depth 50 -b pending https://github.com/gtk-rs/examples _examples
+  - cargo dox --features "dox"
   - cd _examples
   - cargo build
   - cargo build --features "cairo-rs/png gtk_3_18"
