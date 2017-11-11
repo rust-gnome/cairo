@@ -19,12 +19,6 @@ use glib::translate::*;
 
 pub struct PDFSurface(Surface);
 
-extern "C" {
-    pub fn cairo_pdf_surface_create (filename: *const c_char,
-                                     width_in_points: c_double,
-                                     height_in_points: c_double) -> *mut ffi::cairo_surface_t;
-}
-
 impl PDFSurface {
     pub fn from(surface: Surface) -> Result<PDFSurface, Surface> {
         if surface.get_type() == SurfaceType::Pdf {
@@ -44,7 +38,7 @@ impl PDFSurface {
         // Convert: AsRef<Path> -> Cow<str> -> str
         let s = filename.as_ref().to_string_lossy().into_owned();
         let file = CString::new(s).unwrap();
-        unsafe { Self::from_raw_full(cairo_pdf_surface_create(file.as_ptr(), width, height)) }
+        unsafe { Self::from_raw_full(ffi::cairo_pdf_surface_create(file.as_ptr(), width, height)) }
     }
 }
 
