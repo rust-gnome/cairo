@@ -18,7 +18,14 @@ use surface::{Surface, SurfaceExt};
 #[cfg(feature = "use_glib")]
 use glib::translate::*;
 
-pub struct PDFSurface(Surface, Option<Rc<Writer>>);
+#[derive(Clone)]
+pub enum PDFSurface {
+    Raw(Surface),
+    Writer(Surface, Arc<Writer>),
+    Buffer(Surface, Arc<Vec<u8>>),
+}
+
+unsafe impl Send for PDFSurface {}
 
 pub struct Writer(*mut Box<Write>);
 
@@ -33,7 +40,7 @@ impl Drop for Writer {
 impl PDFSurface {
     pub fn from(surface: Surface) -> Result<PDFSurface, Surface> {
         if surface.get_type() == SurfaceType::Pdf {
-            Ok(PDFSurface(surface, None))
+            Ok(PDFSurface::Raw(surface))
         } else {
             Err(surface)
         }
@@ -52,7 +59,7 @@ impl PDFSurface {
         unsafe { Self::from_raw_full(ffi::cairo_pdf_surface_create(file.as_ptr(), width, height)) }
     }
 
-    pub fn create_writer<W: Write + 'static>(writer: W, width: f64, height: f64) -> PDFSurface
+    pub fn writer<W: Write + 'static>(writer: W, width: f64, height: f64) -> PDFSurface
     {
         unsafe extern fn write_to(writer: *mut c_void, data: *mut c_uchar, length: c_uint) -> Status
         {
@@ -71,10 +78,14 @@ impl PDFSurface {
         let writer: *mut Box<Write> = Box::into_raw(Box::new(writer));
 
         unsafe {
-            PDFSurface(
+            PDFSurface::Writer(
                 Surface::from_raw_full(ffi::cairo_pdf_surface_create_for_stream(Some(write_to), writer as *mut _, width, height)),
-                Some(Rc::new(Writer(writer))))
+                Rc::new(Writer(writer)))
         }
+    }
+
+    pub fn bufffered(width: f64, height: f64) -> PDFSurface {
+
     }
 }
 
@@ -91,14 +102,6 @@ impl Deref for PDFSurface {
         &self.0
     }
 }
-
-impl Clone for PDFSurface {
-    fn clone(&self) -> PDFSurface {
-        PDFSurface(self.0.clone(), self.1.clone())
-    }
-}
-
-unsafe impl Send for PDFSurface {}
 
 #[cfg(feature = "use_glib")]
 impl<'a> ToGlibPtr<'a, *mut ffi::cairo_surface_t> for PDFSurface {
