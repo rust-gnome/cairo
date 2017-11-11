@@ -96,6 +96,7 @@ pub use image_surface::{
     ImageSurfaceData,
 };
 
+#[cfg(feature = "pdf")]
 pub use pdf_surface::PDFSurface;
 
 #[cfg(any(feature = "xcb", feature = "dox"))]
@@ -115,6 +116,7 @@ pub mod prelude;
 mod font;
 mod context;
 mod error;
+#[cfg(feature = "pdf")]
 mod pdf_surface;
 mod image_surface;
 #[cfg(any(feature = "png", feature = "dox"))]

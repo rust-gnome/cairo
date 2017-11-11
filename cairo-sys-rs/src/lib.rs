@@ -50,6 +50,9 @@ use enums::{
     Operator,
 };
 
+#[cfg(feature = "pdf")]
+use enums::PDFVersion;
+
 macro_rules! debug_impl {
     ($name:ty) => {
         impl ::std::fmt::Debug for $name {
@@ -544,6 +547,20 @@ extern "C" {
     pub fn cairo_image_surface_create_from_png_stream(read_func: cairo_read_func_t, closure: *mut c_void) -> *mut cairo_surface_t;
     #[cfg(any(feature = "png", feature = "dox"))]
     pub fn cairo_surface_write_to_png_stream(surface: *mut cairo_surface_t, write_func: cairo_write_func_t, closure: *mut c_void) -> Status;
+
+    #[cfg(feature = "pdf")]
+    pub fn cairo_pdf_surface_create (filename: *const c_char,
+                                     width_in_points: c_double,
+                                     height_in_points: c_double) -> *mut cairo_surface_t;
+
+    #[cfg(feature = "pdf")]
+    pub fn cairo_pdf_surface_create_for_stream (write_func: cairo_write_func_t,
+                                                closure: *mut c_void,
+                                                width_in_points: c_double,
+                                                height_in_points: c_double) -> *mut cairo_surface_t;
+
+    #[cfg(feature = "pdf")]
+    pub fn cairo_pdf_surface_restrict_to_version (surface: *mut cairo_surface_t, version: PDFVersion);
 
     // CAIRO XCB
     #[cfg(any(feature = "xcb", feature = "dox"))]

@@ -5,30 +5,42 @@
 use std::ffi::CString;
 use std::ops::Deref;
 use std::path::Path;
+use std::io::Write;
+use std::slice;
+use std::rc::Rc;
 
-extern crate libc;
-use libc::{c_char, c_double};
-
+use libc::{c_void, c_char, c_uchar, c_uint, c_double};
 use ffi;
-use ffi::enums::SurfaceType;
+use ffi::enums::{Status, SurfaceType};
 
 use surface::{Surface, SurfaceExt};
 
 #[cfg(feature = "use_glib")]
 use glib::translate::*;
 
-pub struct PDFSurface(Surface);
+#[derive(Clone)]
+pub enum PDFSurface {
+    Raw(Surface),
+    Writer(Surface, Arc<Writer>),
+    Buffer(Surface, Arc<Vec<u8>>),
+}
 
-extern "C" {
-    pub fn cairo_pdf_surface_create (filename: *const c_char,
-                                     width_in_points: c_double,
-                                     height_in_points: c_double) -> *mut ffi::cairo_surface_t;
+unsafe impl Send for PDFSurface {}
+
+pub struct Writer(*mut Box<Write>);
+
+impl Drop for Writer {
+    fn drop(&mut self) {
+        unsafe {
+            Box::<Box<Write>>::from_raw(self.0);
+        }
+    }
 }
 
 impl PDFSurface {
     pub fn from(surface: Surface) -> Result<PDFSurface, Surface> {
         if surface.get_type() == SurfaceType::Pdf {
-            Ok(PDFSurface(surface))
+            Ok(PDFSurface::Raw(surface))
         } else {
             Err(surface)
         }
@@ -44,7 +56,36 @@ impl PDFSurface {
         // Convert: AsRef<Path> -> Cow<str> -> str
         let s = filename.as_ref().to_string_lossy().into_owned();
         let file = CString::new(s).unwrap();
-        unsafe { Self::from_raw_full(cairo_pdf_surface_create(file.as_ptr(), width, height)) }
+        unsafe { Self::from_raw_full(ffi::cairo_pdf_surface_create(file.as_ptr(), width, height)) }
+    }
+
+    pub fn writer<W: Write + 'static>(writer: W, width: f64, height: f64) -> PDFSurface
+    {
+        unsafe extern fn write_to(writer: *mut c_void, data: *mut c_uchar, length: c_uint) -> Status
+        {
+            let mut writer: Box<Box<Write>> = Box::from_raw(writer as *mut _);
+            let data = slice::from_raw_parts(data, length as usize);
+            let result = match writer.write_all(data) {
+                Ok(_) => Status::Success,
+                Err(_) => Status::WriteError,
+            };
+
+            Box::into_raw(writer);
+            result
+        }
+
+        let writer: Box<Write> = Box::new(writer);
+        let writer: *mut Box<Write> = Box::into_raw(Box::new(writer));
+
+        unsafe {
+            PDFSurface::Writer(
+                Surface::from_raw_full(ffi::cairo_pdf_surface_create_for_stream(Some(write_to), writer as *mut _, width, height)),
+                Rc::new(Writer(writer)))
+        }
+    }
+
+    pub fn bufffered(width: f64, height: f64) -> PDFSurface {
+
     }
 }
 
@@ -61,14 +102,6 @@ impl Deref for PDFSurface {
         &self.0
     }
 }
-
-impl Clone for PDFSurface {
-    fn clone(&self) -> PDFSurface {
-        PDFSurface(self.0.clone())
-    }
-}
-
-unsafe impl Send for PDFSurface {}
 
 #[cfg(feature = "use_glib")]
 impl<'a> ToGlibPtr<'a, *mut ffi::cairo_surface_t> for PDFSurface {

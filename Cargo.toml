@@ -17,6 +17,7 @@ name = "cairo"
 [features]
 purge-lgpl-docs = ["gtk-rs-lgpl-docs"]
 png = ["cairo-sys-rs/png"]
+pdf = ["cairo-sys-rs/pdf"]
 use_glib = ["glib", "glib-sys"]
 embed-lgpl-docs = ["gtk-rs-lgpl-docs"]
 v1_12 = ["cairo-sys-rs/v1_12"]

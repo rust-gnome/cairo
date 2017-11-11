@@ -328,6 +328,14 @@ pub enum RegionOverlap {
     Part,
 }
 
+#[cfg(feature = "pdf")]
+#[repr(C)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum PDFVersion {
+    _1_4,
+    _1_5,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
