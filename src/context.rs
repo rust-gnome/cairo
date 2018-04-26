@@ -54,6 +54,16 @@ impl<'a> ToGlibPtr<'a, *mut ffi::cairo_t> for &'a Context {
 }
 
 #[cfg(feature = "use_glib")]
+impl<'a> ToGlibPtrMut<'a, *mut ffi::cairo_t> for Context {
+    type Storage = &'a mut Context;
+
+    #[inline]
+    fn to_glib_none_mut(&'a mut self) -> StashMut<'a, *mut ffi::cairo_t, Self> {
+        StashMut(self.0 as *mut ffi::cairo_t, self)
+    }
+}
+
+#[cfg(feature = "use_glib")]
 impl FromGlibPtrNone<*mut ffi::cairo_t> for Context {
     #[inline]
     unsafe fn from_glib_none(ptr: *mut ffi::cairo_t) -> Context {
