@@ -100,6 +100,8 @@ pub use image_surface::{
 
 pub use pdf_surface::PDFSurface;
 
+pub use svg_surface::SVGSurface;
+
 #[cfg(any(feature = "xcb", feature = "dox"))]
 pub use xcb::{
     XCBConnection,
@@ -118,6 +120,7 @@ mod font;
 mod context;
 mod error;
 mod pdf_surface;
+mod svg_surface;
 mod image_surface;
 #[cfg(any(feature = "png", feature = "dox"))]
 mod image_surface_png;

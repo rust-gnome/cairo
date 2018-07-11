@@ -552,6 +552,10 @@ extern "C" {
     #[cfg(any(feature = "png", feature = "dox"))]
     pub fn cairo_surface_write_to_png_stream(surface: *mut cairo_surface_t, write_func: cairo_write_func_t, closure: *mut c_void) -> Status;
 
+    // CAIRO SVG_SURFACE
+    pub fn cairo_svg_surface_create (filename: *const c_char,
+                                     width_in_points: c_double,
+                                     height_in_points: c_double) -> *mut cairo_surface_t;
     // CAIRO XCB
     #[cfg(any(feature = "xcb", feature = "dox"))]
     pub fn cairo_xcb_surface_create(connection: *mut xcb_connection_t,
