@@ -54,6 +54,7 @@ use enums::{
     PatternType,
     Format,
     SurfaceType,
+    SVGUnit,
     Operator,
 };
 
@@ -79,6 +80,7 @@ debug_impl!(cairo_surface_t);
 pub struct cairo_svg_version_t(c_void);
 debug_impl!(cairo_svg_version_t);
 
+
 #[repr(C)]
 #[derive(Copy,Clone,Debug)]
 pub struct cairo_pattern_t(u8);
@@ -91,6 +93,7 @@ pub type cairo_antialias_t = Antialias;
 pub type cairo_line_join_t = LineJoin;
 pub type cairo_line_cap_t = LineCap;
 pub type cairo_content_t = Content;
+pub type cairo_svg_unit_t = SVGUnit;
 
 #[cfg(any(feature = "xcb", feature = "dox"))]
 #[repr(C)]
@@ -567,6 +570,7 @@ extern "C" {
     pub fn cairo_svg_version_to_string(versions: cairo_svg_version_t);
     pub fn cairo_svg_surface_create_for_stream(write_func: cairo_write_func_t,
                                                closure: *mut c_void) -> *mut cairo_surface_t;
+    pub fn cairo_svg_surface_set_document_unit(surface: *mut cairo_surface_t, unit : SVGUnit);
 
     // CAIRO XCB
     #[cfg(any(feature = "xcb", feature = "dox"))]

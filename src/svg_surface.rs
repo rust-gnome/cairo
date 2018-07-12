@@ -9,7 +9,7 @@ use std::path::Path;
 extern crate libc;
 
 use ffi;
-use ffi::enums::SurfaceType;
+use ffi::enums::{SurfaceType, SVGUnit};
 
 use surface::{Surface, SurfaceExt};
 
@@ -39,6 +39,10 @@ impl SVGSurface {
         let file = CString::new(s).unwrap();
         unsafe { Self::from_raw_full(ffi::cairo_svg_surface_create(file.as_ptr(), width, height)) }
     }
+
+	pub fn set_document_unit(&mut self, unit : SVGUnit) {
+        unsafe { ffi::cairo_svg_surface_set_document_unit(self.to_raw_none(), unit) };
+	}
 }
 
 impl AsRef<Surface> for SVGSurface {
@@ -145,6 +149,17 @@ mod tests {
                 Some(x) => String::from(x),
             };
             let surface = SVGSurface::create(s, 100., 100.);
+            let cr = Context::new(&surface);
+            draw_x(&cr);
+        }
+		{ // unit
+            let filename = output.join("test4.svg");
+            let s = match filename.to_str() {
+                None => panic!("Error converting Path to String"),
+                Some(x) => String::from(x),
+            };
+            let mut surface = SVGSurface::create(s, 100., 100.);
+			surface.set_document_unit(SVGUnit::UNIT_PX);
             let cr = Context::new(&surface);
             draw_x(&cr);
         }

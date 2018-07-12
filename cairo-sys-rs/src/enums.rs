@@ -296,6 +296,21 @@ pub enum SurfaceType {
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SVGUnit {
+    UNIT_USER = 0,
+    UNIT_EM,
+    UNIT_EX,
+    UNIT_PX,
+    UNIT_IN,
+    UNIT_CM,
+    UNIT_MM,
+    UNIT_PT,
+    UNIT_PC,
+    UNIT_PERCENT
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Format {
     Invalid = -1,
     ARgb32 = 0,
