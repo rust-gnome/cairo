@@ -76,6 +76,10 @@ pub struct cairo_surface_t(c_void);
 debug_impl!(cairo_surface_t);
 
 #[repr(C)]
+pub struct cairo_svg_version_t(c_void);
+debug_impl!(cairo_svg_version_t);
+
+#[repr(C)]
 #[derive(Copy,Clone,Debug)]
 pub struct cairo_pattern_t(u8);
 
@@ -553,9 +557,17 @@ extern "C" {
     pub fn cairo_surface_write_to_png_stream(surface: *mut cairo_surface_t, write_func: cairo_write_func_t, closure: *mut c_void) -> Status;
 
     // CAIRO SVG_SURFACE
-    pub fn cairo_svg_surface_create (filename: *const c_char,
+    pub fn cairo_svg_surface_create(filename: *const c_char,
                                      width_in_points: c_double,
                                      height_in_points: c_double) -> *mut cairo_surface_t;
+    pub fn cairo_svg_surface_restrict_to_version(surface: *mut cairo_surface_t,
+                                                 version: *mut cairo_svg_version_t);
+    pub fn cairo_svg_get_versions(versions: *const cairo_svg_version_t,
+                                  num_versions: *mut c_int);
+    pub fn cairo_svg_version_to_string(versions: cairo_svg_version_t);
+    pub fn cairo_svg_surface_create_for_stream(write_func: cairo_write_func_t,
+                                               closure: *mut c_void) -> *mut cairo_surface_t;
+
     // CAIRO XCB
     #[cfg(any(feature = "xcb", feature = "dox"))]
     pub fn cairo_xcb_surface_create(connection: *mut xcb_connection_t,
