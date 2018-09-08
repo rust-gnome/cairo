@@ -3,6 +3,8 @@ use glib::translate::*;
 #[cfg(feature = "use_glib")]
 use glib_ffi;
 #[cfg(feature = "use_glib")]
+use gobject_ffi;
+#[cfg(feature = "use_glib")]
 use std::ptr;
 #[cfg(feature = "use_glib")]
 use std::mem;
@@ -23,6 +25,7 @@ glib_wrapper! {
     match fn {
         ref => |ptr| ffi::cairo_font_face_reference(ptr),
         unref => |ptr| ffi::cairo_font_face_destroy(ptr),
+        get_type => || ffi::gobject::cairo_gobject_font_face_get_type(),
     }
 }
 
@@ -32,7 +35,8 @@ pub struct FontFace(*mut ffi::cairo_font_face_t);
 impl FontFace {
     pub fn toy_create(family: &str, slant: FontSlant, weight: FontWeight) -> FontFace {
         let font_face: FontFace = unsafe {
-            FontFace::from_raw_full(ffi::cairo_toy_font_face_create(CString::new(family).unwrap().as_ptr(), slant, weight))
+            let family = CString::new(family).unwrap();
+            FontFace::from_raw_full(ffi::cairo_toy_font_face_create(family.as_ptr(), slant, weight))
         };
         font_face.ensure_status();
         font_face

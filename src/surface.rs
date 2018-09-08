@@ -80,6 +80,13 @@ impl<'a> ToGlibPtr<'a, *mut ffi::cairo_surface_t> for Surface {
     fn to_glib_none(&'a self) -> Stash<'a, *mut ffi::cairo_surface_t, Self> {
         Stash(self.to_raw_none(), self)
     }
+
+    #[inline]
+    fn to_glib_full(&self) -> *mut ffi::cairo_surface_t {
+        unsafe {
+            ffi::cairo_surface_reference(self.to_raw_none())
+        }
+    }
 }
 
 #[cfg(feature = "use_glib")]
@@ -105,6 +112,9 @@ impl FromGlibPtrFull<*mut ffi::cairo_surface_t> for Surface {
         Self::from_raw_full(ptr)
     }
 }
+
+#[cfg(feature = "use_glib")]
+gvalue_impl!(Surface, ffi::cairo_surface_t, ffi::gobject::cairo_gobject_surface_get_type);
 
 impl AsRef<Surface> for Surface {
     fn as_ref(&self) -> &Surface {
@@ -152,8 +162,12 @@ pub trait SurfacePriv {
 
 impl<O: AsRef<Surface>> SurfacePriv for O {
     unsafe fn set_user_data<K, T>(&self, key: &K, data: Box<T>) -> Result<(), Status> {
-        let status = ffi::cairo_surface_set_user_data(self.as_ref().0, mem::transmute(key),
-            mem::transmute(data), Some(unbox::<T>));
+        let ptr: *mut T = Box::into_raw(data);
+
+        assert_eq!(mem::size_of::<*mut c_void>(), mem::size_of_val(&ptr));
+
+        let status = ffi::cairo_surface_set_user_data(self.as_ref().0, key as *const _ as *mut _,
+            ptr as *mut c_void, Some(unbox::<T>));
         match status {
             Status::Success => Ok(()),
             x => Err(x),
@@ -162,6 +176,6 @@ impl<O: AsRef<Surface>> SurfacePriv for O {
 }
 
 unsafe extern "C" fn unbox<T>(data: *mut c_void) {
-    let data: Box<T> = mem::transmute(data);
+    let data: Box<T> = Box::from_raw(data as *mut T);
     drop(data);
 }

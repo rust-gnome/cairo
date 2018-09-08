@@ -3,8 +3,16 @@
 // Licensed under the MIT license, see the LICENSE file or <http://opensource.org/licenses/MIT>
 
 #![allow(non_camel_case_types)]
+#![cfg_attr(feature = "cargo-clippy", allow(unreadable_literal, write_literal))]
 
 extern crate libc;
+
+#[cfg(feature = "use_glib")]
+extern crate glib_sys as glib_ffi;
+#[cfg(feature = "use_glib")]
+extern crate gobject_sys as gobject_ffi;
+#[cfg(feature = "use_glib")]
+extern crate glib;
 
 #[cfg(any(feature = "xlib", feature = "dox"))]
 extern crate x11;
@@ -676,3 +684,6 @@ extern "C" {
     #[cfg(any(target_os = "macos", target_os = "ios", feature = "dox"))]
     pub fn cairo_quartz_surface_get_cg_context(surface: *mut cairo_surface_t) -> CGContextRef;
 }
+
+#[cfg(feature = "use_glib")]
+pub mod gobject;
