@@ -42,7 +42,7 @@ impl<S: FromRawSurface + AsRef<Surface>, W: io::Write> Writer<S, W> {
 
     pub fn new(constructor: Constructor, width: f64, height: f64, writer: W) -> Writer<S, W> {
         let mut writer = Box::new(writer);
-        let writer_ptr = unsafe { mem::transmute(&mut *writer) };
+        let writer_ptr = &mut *writer as *mut W as *mut c_void;
         let surface = unsafe {
             S::from_raw_surface(constructor(Some(Self::write_cb), writer_ptr, width, height))
         };
@@ -79,7 +79,7 @@ pub struct RefWriter<'w, S: FromRawSurface, W: io::Write + 'w> {
 
 impl<'w, S: FromRawSurface, W: io::Write + 'w> RefWriter<'w, S, W> {
     extern fn write_cb(writer: *mut c_void, data: *mut c_uchar, length: c_uint) -> cairo_status_t {
-        let writer: &'w mut W = unsafe { mem::transmute(writer) };
+        let writer = unsafe { &mut *(writer as *mut W) };
         let data = unsafe { slice::from_raw_parts(data, length as usize) };
 
         let result = match writer.write_all(data) {
@@ -92,7 +92,7 @@ impl<'w, S: FromRawSurface, W: io::Write + 'w> RefWriter<'w, S, W> {
     }
 
     pub fn new(constructor: Constructor, width: f64, height: f64, writer: &'w mut W) -> RefWriter<'w, S, W> {
-        let writer_ptr = unsafe { mem::transmute(writer) };
+        let writer_ptr = writer as *mut W as *mut c_void;
         let surface = unsafe {
             S::from_raw_surface(constructor(Some(Self::write_cb), writer_ptr, width, height))
         };
