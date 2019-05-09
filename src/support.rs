@@ -2,7 +2,6 @@
 // See the COPYRIGHT file at the top-level directory of this distribution.
 // Licensed under the MIT license, see the LICENSE file or <http://opensource.org/licenses/MIT>
 
-use std::mem;
 use std::marker::PhantomData;
 use std::io;
 use std::slice;
@@ -28,7 +27,7 @@ pub struct Writer<S: FromRawSurface + AsRef<Surface>, W: io::Write> {
 
 impl<S: FromRawSurface + AsRef<Surface>, W: io::Write> Writer<S, W> {
     extern fn write_cb(writer: *mut c_void, data: *mut c_uchar, length: c_uint) -> cairo_status_t {
-        let mut writer: Box<W> = unsafe { Box::from_raw(writer as *mut _) };
+        let writer = unsafe { &mut *(writer as *mut W) };
         let data = unsafe { slice::from_raw_parts(data, length as usize) };
 
         let result = match writer.write_all(data) {
@@ -36,7 +35,6 @@ impl<S: FromRawSurface + AsRef<Surface>, W: io::Write> Writer<S, W> {
             Err(_) => Status::WriteError,
         };
 
-        mem::forget(writer);
         result.into()
     }
 
@@ -87,7 +85,6 @@ impl<'w, S: FromRawSurface, W: io::Write + 'w> RefWriter<'w, S, W> {
             Err(_) => Status::WriteError,
         };
 
-        mem::forget(writer);
         result.into()
     }
 
