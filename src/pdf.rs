@@ -365,6 +365,21 @@ mod test {
     }
 
     #[test]
+    fn writer_with_ref() {
+        let mut file = tempfile().expect("tempfile failed");
+        {
+            let surface = Writer::new(100., 100., &mut file);
+
+            draw(&surface);
+            surface.finish();
+        }
+
+        let buffer = draw_in_buffer();
+        let file_size = file.metadata().unwrap().len();
+        assert_eq!(file_size, buffer.len() as u64);
+    }
+
+    #[test]
     fn ref_writer() {
         let mut file = tempfile().expect("tempfile failed");
         let surface = RefWriter::new(100., 100., &mut file);
