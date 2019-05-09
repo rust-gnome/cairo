@@ -212,12 +212,12 @@ impl<W: io::Write> fmt::Display for Writer<W> {
 
 #[derive(Debug)]
 pub struct RefWriter<'w, W: io::Write + 'w> {
-    writer: support::RefWriter<'w, File, W>,
+    writer: support::Writer<File, &'w mut W>,
 }
 
 impl<'w, W: io::Write + 'w> RefWriter<'w, W> {
     pub fn new(width: f64, height: f64, writer: &'w mut W) -> RefWriter<'w, W> {
-        let writer = support::RefWriter::new(ffi::cairo_svg_surface_create_for_stream,
+        let writer = support::Writer::new(ffi::cairo_svg_surface_create_for_stream,
             width, height, writer);
 
         RefWriter { writer }
