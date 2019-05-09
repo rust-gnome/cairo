@@ -68,12 +68,14 @@ impl<S: FromRawSurface + AsRef<Surface>, W: io::Write> Writer<S, W> {
     pub fn io_error(&self) -> Option<&io::Error> { self.callback_env.error.as_ref() }
     pub fn take_io_error(&mut self) -> Option<io::Error> { self.callback_env.error.take() }
 
-    pub fn finish(self) -> W {
-        let surface = self.surface;
-        surface.as_ref().finish();
-        drop(surface);
-
-        self.callback_env.writer
+    pub fn finish(self) -> Result<W, (io::Error, W)> {
+        self.surface.as_ref().finish();
+        drop(self.surface);
+        let env = *self.callback_env;
+        match env.error {
+            Some(e) => Err((e, env.writer)),
+            None => Ok(env.writer),
+        }
     }
 }
 

@@ -161,7 +161,7 @@ impl<W: io::Write> Writer<W> {
     pub fn io_error(&self) -> Option<&io::Error> { self.writer.io_error() }
     pub fn take_io_error(&mut self) -> Option<io::Error> { self.writer.take_io_error() }
 
-    pub fn finish(self) -> W {
+    pub fn finish(self) -> Result<W, (io::Error, W)> {
         self.writer.finish()
     }
 }
@@ -239,7 +239,7 @@ mod test {
 
         let surface = Writer::new(100., 100., buffer);
         draw(&surface);
-        surface.finish()
+        surface.finish().unwrap()
     }
 
     fn assert_len_close_enough(len_a: usize, len_b: usize) {
@@ -275,7 +275,7 @@ mod test {
         let surface = Writer::new(100., 100., file);
 
         draw(&surface);
-        let file = surface.finish();
+        let file = surface.finish().unwrap();
 
         let buffer = draw_in_buffer();
         let file_size = file.metadata().unwrap().len();
@@ -289,7 +289,7 @@ mod test {
         let surface = RefWriter::new(100., 100., &mut file);
 
         draw(&surface);
-        surface.finish();
+        surface.finish().unwrap();
     }
 
     #[test]
@@ -304,6 +304,7 @@ mod test {
     fn custom_writer() {
         use std::fs;
 
+        #[derive(Debug)]
         struct CustomWriter(usize, fs::File);
 
         impl io::Write for CustomWriter {
@@ -322,7 +323,7 @@ mod test {
 
         let surface = Writer::new(100., 100., custom_writer);
         draw(&surface);
-        let custom_writer = surface.finish();
+        let custom_writer = surface.finish().unwrap();
 
         let buffer = draw_in_buffer();
 
