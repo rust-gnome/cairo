@@ -66,7 +66,7 @@ pub struct Writer<S: FromRawSurface + AsRef<Surface>, W: io::Write> {
 impl<S: FromRawSurface + AsRef<Surface>, W: io::Write> Writer<S, W> {
     extern fn write_cb(mut env: *mut c_void, data: *mut c_uchar, length: c_uint) -> cairo_status_t {
         unsafe {
-            // Safety: the type of `env` would matches `&mut *self.callback_env` in a `Writer` method.
+            // Safety: the type of `env` would match `&mut *self.callback_env` in a `Writer` method.
             let env: &mut CallbackEnv<W> = CallbackEnv::from_void(&mut env);
             env.write(data, length)
         }
