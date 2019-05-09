@@ -24,39 +24,6 @@ struct CallbackEnv<W> {
     error: Option<io::Error>,
 }
 
-impl<W> CallbackEnv<W> {
-    fn new(writer: W) -> Box<Self> {
-        Box::new(CallbackEnv {
-            writer,
-            error: None,
-        })
-    }
-
-    fn as_void(&mut self) -> *mut c_void {
-        self as *mut Self as *mut c_void
-    }
-
-    unsafe fn from_void(ptr: &mut *mut c_void) -> &mut Self {
-        &mut *(*ptr as *mut Self)
-    }
-
-    unsafe fn write(&mut self, data: *mut c_uchar, length: c_uint) -> cairo_status_t
-        where W: io::Write
-    {
-        let data = slice::from_raw_parts(data, length as usize);
-
-        let result = match self.writer.write_all(data) {
-            Ok(_) => Status::Success,
-            Err(e) => {
-                self.error = Some(e);
-                Status::WriteError
-            }
-        };
-
-        result.into()
-    }
-}
-
 #[derive(Debug)]
 pub struct Writer<S: FromRawSurface + AsRef<Surface>, W: io::Write> {
     pub surface: S,
@@ -64,17 +31,27 @@ pub struct Writer<S: FromRawSurface + AsRef<Surface>, W: io::Write> {
 }
 
 impl<S: FromRawSurface + AsRef<Surface>, W: io::Write> Writer<S, W> {
-    extern fn write_cb(mut env: *mut c_void, data: *mut c_uchar, length: c_uint) -> cairo_status_t {
-        unsafe {
-            // Safety: the type of `env` would match `&mut *self.callback_env` in a `Writer` method.
-            let env: &mut CallbackEnv<W> = CallbackEnv::from_void(&mut env);
-            env.write(data, length)
-        }
+    extern fn write_cb(env: *mut c_void, data: *mut c_uchar, length: c_uint) -> cairo_status_t {
+        let env: &mut CallbackEnv<W> = unsafe { &mut *(env as *mut CallbackEnv<W>) };
+        let data = unsafe { slice::from_raw_parts(data, length as usize) };
+
+        let result = match env.writer.write_all(data) {
+            Ok(_) => Status::Success,
+            Err(e) => {
+                env.error = Some(e);
+                Status::WriteError
+            }
+        };
+
+        result.into()
     }
 
     pub fn new(constructor: Constructor, width: f64, height: f64, writer: W) -> Writer<S, W> {
-        let mut callback_env = CallbackEnv::new(writer);
-        let env_ptr = callback_env.as_void();
+        let mut callback_env = Box::new(CallbackEnv {
+            writer,
+            error: None,
+        });
+        let env_ptr = &mut *callback_env as *mut CallbackEnv<W> as *mut c_void;
         let surface = unsafe {
             S::from_raw_surface(constructor(Some(Self::write_cb), env_ptr, width, height))
         };
