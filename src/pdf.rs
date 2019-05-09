@@ -241,64 +241,7 @@ impl<W: io::Write> fmt::Display for Writer<W> {
     }
 }
 
-
-#[derive(Debug)]
-pub struct RefWriter<'w, W: io::Write + 'w> {
-    writer: support::Writer<File, &'w mut W>,
-}
-
-impl<'w, W: io::Write + 'w> RefWriter<'w, W> {
-    pub fn new(width: f64, height: f64, writer: &'w mut W) -> RefWriter<'w, W> {
-        let writer = support::Writer::new(ffi::cairo_pdf_surface_create_for_stream,
-            width, height, writer);
-
-        RefWriter { writer }
-    }
-
-    pub fn writer(&self) -> &W { self.writer.writer() }
-    pub fn writer_mut(&mut self) -> &mut W { self.writer.writer_mut() }
-
-    pub fn io_error(&self) -> Option<&io::Error> { self.writer.io_error() }
-    pub fn take_io_error(&mut self) -> Option<io::Error> { self.writer.take_io_error() }
-}
-
-impl<'w, W: io::Write + 'w> Deref for RefWriter<'w, W> {
-    type Target = File;
-
-    fn deref(&self) -> &File {
-        &self.writer.surface
-    }
-}
-
-impl<'w, W: io::Write + 'w> AsRef<File> for RefWriter<'w, W> {
-    fn as_ref(&self) -> &File {
-        &self.writer.surface
-    }
-}
-
-impl<'w, W: io::Write + 'w> AsRef<Surface> for RefWriter<'w, W> {
-    fn as_ref(&self) -> &Surface {
-        &self.writer.surface.as_ref()
-    }
-}
-
-#[cfg(feature = "use_glib")]
-impl<'a, 'w, W: io::Write + 'w> ToGlibPtr<'a, *mut ffi::cairo_surface_t> for RefWriter<'w, W> {
-    type Storage = &'a Surface;
-
-    #[inline]
-    fn to_glib_none(&'a self) -> Stash<'a, *mut ffi::cairo_surface_t, Self> {
-        let stash = self.writer.surface.to_glib_none();
-        Stash(stash.0, stash.1)
-    }
-}
-
-impl<'w, W: io::Write + 'w> fmt::Display for RefWriter<'w, W> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "pdf::RefWriter")
-    }
-}
-
+pub type RefWriter<'w, W> = Writer<&'w mut W>;
 
 #[cfg(test)]
 mod test {
