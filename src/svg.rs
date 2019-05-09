@@ -161,8 +161,8 @@ impl<W: io::Write> Writer<W> {
     pub fn io_error(&self) -> Option<&io::Error> { self.writer.io_error() }
     pub fn take_io_error(&mut self) -> Option<io::Error> { self.writer.take_io_error() }
 
-    pub fn finish(self) -> Result<W, (io::Error, W)> {
-        self.writer.finish()
+    pub fn into_inner(self) -> Result<W, (io::Error, W)> {
+        self.writer.into_inner()
     }
 }
 
@@ -239,7 +239,7 @@ mod test {
 
         let surface = Writer::new(100., 100., buffer);
         draw(&surface);
-        surface.finish().unwrap()
+        surface.into_inner().unwrap()
     }
 
     fn assert_len_close_enough(len_a: usize, len_b: usize) {
@@ -275,7 +275,7 @@ mod test {
         let surface = Writer::new(100., 100., file);
 
         draw(&surface);
-        let file = surface.finish().unwrap();
+        let file = surface.into_inner().unwrap();
 
         let buffer = draw_in_buffer();
         let file_size = file.metadata().unwrap().len();
@@ -289,7 +289,7 @@ mod test {
         let surface = RefWriter::new(100., 100., &mut file);
 
         draw(&surface);
-        surface.finish().unwrap();
+        surface.into_inner().unwrap();
     }
 
     #[test]
@@ -323,7 +323,7 @@ mod test {
 
         let surface = Writer::new(100., 100., custom_writer);
         draw(&surface);
-        let custom_writer = surface.finish().unwrap();
+        let custom_writer = surface.into_inner().unwrap();
 
         let buffer = draw_in_buffer();
 
