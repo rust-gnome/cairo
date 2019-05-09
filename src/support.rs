@@ -134,6 +134,9 @@ impl<'w, S: FromRawSurface, W: io::Write + 'w> RefWriter<'w, S, W> {
         }
     }
 
+    pub fn writer(&self) -> &W { &self.callback_env.writer }
+    pub fn writer_mut(&mut self) -> &mut W { &mut self.callback_env.writer }
+
     pub fn io_error(&self) -> Option<&io::Error> { self.callback_env.error.as_ref() }
     pub fn take_io_error(&mut self) -> Option<io::Error> { self.callback_env.error.take() }
 }

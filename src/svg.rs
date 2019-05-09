@@ -223,6 +223,9 @@ impl<'w, W: io::Write + 'w> RefWriter<'w, W> {
         RefWriter { writer }
     }
 
+    pub fn writer(&self) -> &W { self.writer.writer() }
+    pub fn writer_mut(&mut self) -> &mut W { self.writer.writer_mut() }
+
     pub fn io_error(&self) -> Option<&io::Error> { self.writer.io_error() }
     pub fn take_io_error(&mut self) -> Option<io::Error> { self.writer.take_io_error() }
 }
