@@ -14,6 +14,10 @@ fn main() {
             process::exit(1);
         }
     } else {
+        #[cfg(target_os = "macos")]
+        {
+            macos_maybe_find_lib_ffi();
+        }
         if let Err(s) = find("cairo", &["cairo"]) {
             let _ = writeln!(io::stderr(), "{}", s);
             process::exit(1);
@@ -68,5 +72,46 @@ fn find(package_name: &str, shared_libs: &[&str]) -> Result<(), Error> {
             Ok(())
         }
         Err(err) => Err(err),
+    }
+}
+
+// HACK: if libffi is installed via homebrew it doesn't get linked correctly.
+// this adds the homebrew libffi to the pkg-config-path.
+#[cfg(target_os = "macos")]
+fn macos_maybe_find_lib_ffi() {
+    use std::path::{Path, PathBuf};
+    use std::process::Command;
+
+    const PKG_CONFIG_PATH: &str = "PKG_CONFIG_PATH";
+    const BREW_LIBFFI_REL_PATH: &str = "opt/libffi/lib/pkgconfig";
+
+    // check for homebrew
+    if !Command::new("brew")
+        .arg("-v")
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false)
+    {
+        return;
+    }
+
+    if let Some(prefix) = Command::new("brew")
+        .arg("--prefix")
+        .output()
+        .ok()
+        .and_then(|o| String::from_utf8(o.stdout).ok())
+        .map(|s| PathBuf::from(s.trim()))
+    {
+        let libffi_path = prefix.join(BREW_LIBFFI_REL_PATH);
+        let cfg_path = env::var(PKG_CONFIG_PATH)
+            .ok()
+            .and_then(|var| env::join_paths(&[Path::new(&var), libffi_path.as_path()]).ok())
+            .unwrap_or(libffi_path.into());
+        env::set_var(PKG_CONFIG_PATH, cfg_path);
+    } else {
+        eprintln!(
+            "brew --prefix returned non-utf8 output, \
+             so you probably know what you're doing."
+        );
     }
 }
