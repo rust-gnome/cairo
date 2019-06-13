@@ -6,18 +6,15 @@ use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 use std::slice;
 
+use enums::{Format, SurfaceType};
+use ffi;
 #[cfg(feature = "use_glib")]
 use glib::translate::*;
-use ffi;
-use ::enums::{
-    Format,
-    SurfaceType,
-};
 
-use BorrowError;
-use surface::{Surface, SurfaceExt};
-use Status;
 use std::fmt;
+use surface::{Surface, SurfaceExt};
+use BorrowError;
+use Status;
 
 #[derive(Debug)]
 pub struct ImageSurface(Surface);
@@ -26,8 +23,7 @@ impl ImageSurface {
     pub fn from(surface: Surface) -> Result<ImageSurface, Surface> {
         if surface.get_type() == SurfaceType::Image {
             Ok(ImageSurface(surface))
-        }
-        else {
+        } else {
             Err(surface)
         }
     }
@@ -37,18 +33,27 @@ impl ImageSurface {
         let status = surface.status();
         match status {
             Status::Success => Ok(surface),
-            _ => Err(status)
+            _ => Err(status),
         }
     }
 
     pub fn create(format: Format, width: i32, height: i32) -> Result<ImageSurface, Status> {
         unsafe {
-            Self::from_raw_full(ffi::cairo_image_surface_create(format.into(), width, height))
+            Self::from_raw_full(ffi::cairo_image_surface_create(
+                format.into(),
+                width,
+                height,
+            ))
         }
     }
 
-    pub fn create_for_data<D: AsMut<[u8]> + 'static>(data: D, format: Format, width: i32, height: i32,
-                              stride: i32) -> Result<ImageSurface, Status> {
+    pub fn create_for_data<D: AsMut<[u8]> + 'static>(
+        data: D,
+        format: Format,
+        width: i32,
+        height: i32,
+        stride: i32,
+    ) -> Result<ImageSurface, Status> {
         let mut data: Box<dyn AsMut<[u8]>> = Box::new(data);
 
         let (ptr, len) = {
@@ -59,9 +64,13 @@ impl ImageSurface {
 
         assert!(len >= (height * stride) as usize);
         let result = unsafe {
-            ImageSurface::from_raw_full(
-                ffi::cairo_image_surface_create_for_data(ptr, format.into(), width, height, stride)
-            )
+            ImageSurface::from_raw_full(ffi::cairo_image_surface_create_for_data(
+                ptr,
+                format.into(),
+                width,
+                height,
+                stride,
+            ))
         };
         if let Ok(surface) = &result {
             static IMAGE_SURFACE_DATA: crate::UserDataKey<Box<dyn AsMut<[u8]>>> =
@@ -74,7 +83,7 @@ impl ImageSurface {
     pub fn get_data(&mut self) -> Result<ImageSurfaceData, BorrowError> {
         unsafe {
             if ffi::cairo_surface_get_reference_count(self.to_raw_none()) > 1 {
-                return Err(BorrowError::NonExclusive)
+                return Err(BorrowError::NonExclusive);
             }
             self.flush();
             match self.status() {
@@ -82,16 +91,14 @@ impl ImageSurface {
                 status => return Err(BorrowError::from(status)),
             }
             if ffi::cairo_image_surface_get_data(self.to_raw_none()).is_null() {
-                return Err(BorrowError::from(Status::SurfaceFinished))
+                return Err(BorrowError::from(Status::SurfaceFinished));
             }
             Ok(ImageSurfaceData::new(self))
         }
     }
 
     pub fn get_format(&self) -> Format {
-        unsafe {
-            Format::from(ffi::cairo_image_surface_get_format(self.to_raw_none()))
-        }
+        unsafe { Format::from(ffi::cairo_image_surface_get_format(self.to_raw_none())) }
     }
 
     pub fn get_height(&self) -> i32 {
@@ -119,9 +126,7 @@ impl<'a> ToGlibPtr<'a, *mut ffi::cairo_surface_t> for ImageSurface {
 
     #[inline]
     fn to_glib_full(&self) -> *mut ffi::cairo_surface_t {
-        unsafe {
-            ffi::cairo_surface_reference(self.0.to_glib_none().0)
-        }
+        unsafe { ffi::cairo_surface_reference(self.0.to_glib_none().0) }
     }
 }
 
@@ -150,7 +155,11 @@ impl FromGlibPtrFull<*mut ffi::cairo_surface_t> for ImageSurface {
 }
 
 #[cfg(feature = "use_glib")]
-gvalue_impl!(ImageSurface, ffi::cairo_surface_t, ffi::gobject::cairo_gobject_surface_get_type);
+gvalue_impl!(
+    ImageSurface,
+    ffi::cairo_surface_t,
+    ffi::gobject::cairo_gobject_surface_get_type
+);
 
 impl AsRef<Surface> for ImageSurface {
     fn as_ref(&self) -> &Surface {
@@ -236,26 +245,21 @@ mod tests {
     #[test]
     fn create_with_invalid_size_yields_error() {
         let result = ImageSurface::create(Format::ARgb32, 50000, 50000);
-        assert! (result.is_err());
+        assert!(result.is_err());
     }
 
     #[test]
     fn create_for_data_with_invalid_stride_yields_error() {
-        let result = ImageSurface::create_for_data(vec![0u8; 10],
-                                                   Format::ARgb32,
-                                                   1, 2,
-                                                   5); // unaligned stride
-        assert! (result.is_err());
+        let result = ImageSurface::create_for_data(vec![0u8; 10], Format::ARgb32, 1, 2, 5); // unaligned stride
+        assert!(result.is_err());
     }
 
     #[test]
     fn create_with_valid_size() {
         let result = ImageSurface::create(Format::ARgb32, 10, 10);
-        assert! (result.is_ok());
+        assert!(result.is_ok());
 
-        let result = ImageSurface::create_for_data(vec![0u8; 40 * 10],
-                                                   Format::ARgb32,
-                                                   10, 10, 40);
-        assert! (result.is_ok());
+        let result = ImageSurface::create_for_data(vec![0u8; 40 * 10], Format::ARgb32, 10, 10, 40);
+        assert!(result.is_ok());
     }
 }

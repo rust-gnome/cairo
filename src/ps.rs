@@ -2,21 +2,20 @@
 // See the COPYRIGHT file at the top-level directory of this distribution.
 // Licensed under the MIT license, see the LICENSE file or <http://opensource.org/licenses/MIT>
 
-use std::mem;
 use std::ffi::{CStr, CString};
+use std::fmt;
+use std::io;
+use std::mem;
 use std::ops::Deref;
 use std::path::Path;
-use std::io;
-use std::fmt;
 
+use enums::PsLevel;
 use ffi;
-use ::enums::PsLevel;
-use surface::Surface;
 use support::{self, FromRawSurface};
+use surface::Surface;
 
 #[cfg(feature = "use_glib")]
 use glib::translate::*;
-
 
 pub fn get_levels() -> Vec<PsLevel> {
     let lvls_slice = unsafe {
@@ -33,7 +32,8 @@ pub fn get_levels() -> Vec<PsLevel> {
 pub fn level_to_string(level: PsLevel) -> Option<&'static str> {
     unsafe {
         let res = ffi::cairo_ps_level_to_string(level.into());
-        res.as_ref().and_then(|cstr| CStr::from_ptr(cstr as _).to_str().ok())
+        res.as_ref()
+            .and_then(|cstr| CStr::from_ptr(cstr as _).to_str().ok())
     }
 }
 
@@ -44,7 +44,9 @@ pub struct File {
 
 impl FromRawSurface for File {
     unsafe fn from_raw_surface(surface: *mut ffi::cairo_surface_t) -> File {
-        File { inner: Surface::from_raw_full(surface) }
+        File {
+            inner: Surface::from_raw_full(surface),
+        }
     }
 }
 
@@ -63,7 +65,9 @@ impl<'a> ToGlibPtr<'a, *mut ffi::cairo_surface_t> for File {
 impl FromGlibPtrNone<*mut ffi::cairo_surface_t> for File {
     #[inline]
     unsafe fn from_glib_none(ptr: *mut ffi::cairo_surface_t) -> File {
-        File { inner: from_glib_none(ptr) }
+        File {
+            inner: from_glib_none(ptr),
+        }
     }
 }
 
@@ -71,7 +75,9 @@ impl FromGlibPtrNone<*mut ffi::cairo_surface_t> for File {
 impl FromGlibPtrBorrow<*mut ffi::cairo_surface_t> for File {
     #[inline]
     unsafe fn from_glib_borrow(ptr: *mut ffi::cairo_surface_t) -> File {
-        File { inner: from_glib_borrow(ptr) }
+        File {
+            inner: from_glib_borrow(ptr),
+        }
     }
 }
 
@@ -100,9 +106,7 @@ impl File {
     }
 
     pub fn get_eps(&self) -> bool {
-        unsafe {
-            ffi::cairo_ps_surface_get_eps(self.inner.to_raw_none()).as_bool()
-        }
+        unsafe { ffi::cairo_ps_surface_get_eps(self.inner.to_raw_none()).as_bool() }
     }
 
     pub fn set_eps(&self, eps: bool) {
@@ -135,7 +139,6 @@ impl File {
             ffi::cairo_ps_surface_dsc_comment(self.inner.to_raw_none(), comment.as_ptr());
         }
     }
-
 }
 
 impl AsRef<Surface> for File {
@@ -154,7 +157,9 @@ impl Deref for File {
 
 impl AsRef<File> for File {
     // This is included in order to be able to be generic over PS surfaces
-    fn as_ref(&self) -> &File { self }
+    fn as_ref(&self) -> &File {
+        self
+    }
 }
 
 impl fmt::Display for File {
@@ -163,7 +168,6 @@ impl fmt::Display for File {
     }
 }
 
-
 #[derive(Debug)]
 pub struct Writer<W: io::Write> {
     writer: support::Writer<File, W>,
@@ -171,14 +175,22 @@ pub struct Writer<W: io::Write> {
 
 impl<W: io::Write> Writer<W> {
     pub fn new(width: f64, height: f64, writer: W) -> Writer<W> {
-        let writer = support::Writer::new(ffi::cairo_ps_surface_create_for_stream,
-            width, height, writer);
+        let writer = support::Writer::new(
+            ffi::cairo_ps_surface_create_for_stream,
+            width,
+            height,
+            writer,
+        );
 
         Writer { writer }
     }
 
-    pub fn writer(&self) -> &W { self.writer.writer() }
-    pub fn writer_mut(&mut self) -> &mut W { self.writer.writer_mut() }
+    pub fn writer(&self) -> &W {
+        self.writer.writer()
+    }
+    pub fn writer_mut(&mut self) -> &mut W {
+        self.writer.writer_mut()
+    }
 
     pub fn finish(self) -> W {
         self.writer.finish()
@@ -228,7 +240,6 @@ impl<W: io::Write> fmt::Display for Writer<W> {
     }
 }
 
-
 #[derive(Debug)]
 pub struct RefWriter<'w, W: io::Write + 'w> {
     writer: support::RefWriter<'w, File, W>,
@@ -236,8 +247,12 @@ pub struct RefWriter<'w, W: io::Write + 'w> {
 
 impl<'w, W: io::Write + 'w> RefWriter<'w, W> {
     pub fn new(width: f64, height: f64, writer: &'w mut W) -> RefWriter<'w, W> {
-        let writer = support::RefWriter::new(ffi::cairo_ps_surface_create_for_stream,
-            width, height, writer);
+        let writer = support::RefWriter::new(
+            ffi::cairo_ps_surface_create_for_stream,
+            width,
+            height,
+            writer,
+        );
 
         RefWriter { writer }
     }
@@ -280,12 +295,11 @@ impl<'w, W: io::Write + 'w> fmt::Display for RefWriter<'w, W> {
     }
 }
 
-
 #[cfg(test)]
 mod test {
     use super::*;
-    use surface::SurfaceExt;
     use context::*;
+    use surface::SurfaceExt;
     use tempfile::tempfile;
 
     fn draw<T: AsRef<File>>(surface: &T) {
@@ -297,13 +311,13 @@ mod test {
         cr.set_line_width(25.0);
 
         cr.set_source_rgb(1.0, 0.0, 0.0);
-        cr.line_to(0.,0.);
-        cr.line_to(100.,100.);
+        cr.line_to(0., 0.);
+        cr.line_to(100., 100.);
         cr.stroke();
 
         cr.set_source_rgb(0.0, 0.0, 1.0);
-        cr.line_to(0.,100.);
-        cr.line_to(100.,0.);
+        cr.line_to(0., 100.);
+        cr.line_to(100., 0.);
         cr.stroke();
     }
 
@@ -383,7 +397,9 @@ mod test {
                 Ok(buf.len())
             }
 
-            fn flush(&mut self) -> io::Result<()> { Ok(()) }
+            fn flush(&mut self) -> io::Result<()> {
+                Ok(())
+            }
         }
 
         let custom_writer = CustomWriter(0);
