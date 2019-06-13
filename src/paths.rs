@@ -2,11 +2,14 @@
 // See the COPYRIGHT file at the top-level directory of this distribution.
 // Licensed under the MIT license, see the LICENSE file or <http://opensource.org/licenses/MIT>
 
-use enums::{PathDataType, Status};
-use ffi;
-use ffi::cairo_path_t;
-use std::fmt;
 use std::iter::Iterator;
+use ::enums::{
+    PathDataType,
+    Status,
+};
+use ffi::cairo_path_t;
+use ffi;
+use std::fmt;
 
 #[derive(Debug)]
 pub struct Path(*mut cairo_path_t);
@@ -51,7 +54,7 @@ impl Path {
 
 impl Drop for Path {
     fn drop(&mut self) {
-        unsafe {
+        unsafe{
             ffi::cairo_path_destroy(self.as_ptr());
         }
     }
@@ -73,23 +76,19 @@ pub enum PathSegment {
 
 impl fmt::Display for PathSegment {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "PathSegment::{}",
-            match *self {
-                PathSegment::MoveTo(_) => "MoveTo",
-                PathSegment::LineTo(_) => "LineTo",
-                PathSegment::CurveTo(_, _, _) => "CurveTo",
-                PathSegment::ClosePath => "ClosePath",
-            }
-        )
+        write!(f, "PathSegment::{}", match *self {
+            PathSegment::MoveTo(_) => "MoveTo",
+            PathSegment::LineTo(_) => "LineTo",
+            PathSegment::CurveTo(_, _, _) => "CurveTo",
+            PathSegment::ClosePath => "ClosePath"
+        })
     }
 }
 
 pub struct PathSegments<'a> {
     data: &'a [ffi::cairo_path_data],
     i: usize,
-    num_data: usize,
+    num_data: usize
 }
 
 impl<'a> Iterator for PathSegments<'a> {
@@ -104,11 +103,10 @@ impl<'a> Iterator for PathSegments<'a> {
             let res = match PathDataType::from(self.data[self.i].header.data_type) {
                 PathDataType::MoveTo => PathSegment::MoveTo(to_tuple(&self.data[self.i + 1].point)),
                 PathDataType::LineTo => PathSegment::LineTo(to_tuple(&self.data[self.i + 1].point)),
-                PathDataType::CurveTo => PathSegment::CurveTo(
-                    to_tuple(&self.data[self.i + 1].point),
-                    to_tuple(&self.data[self.i + 2].point),
-                    to_tuple(&self.data[self.i + 3].point),
-                ),
+                PathDataType::CurveTo => {
+                    PathSegment::CurveTo(to_tuple(&self.data[self.i + 1].point),
+                        to_tuple(&self.data[self.i + 2].point), to_tuple(&self.data[self.i + 3].point))
+                }
                 PathDataType::ClosePath => PathSegment::ClosePath,
                 PathDataType::__Unknown(x) => panic!("Unknown value: {}", x),
             };
@@ -134,11 +132,11 @@ fn to_tuple(pair: &[f64; 2]) -> (f64, f64) {
 mod tests {
     use super::*;
     use context::*;
-    use enums::Format;
     use image_surface::*;
+    use ::enums::Format;
 
     fn make_cr() -> Context {
-        let surface = ImageSurface::create(Format::Rgb24, 1, 1).unwrap();
+        let surface = ImageSurface::create(Format::Rgb24, 1, 1).unwrap ();
 
         Context::new(&surface)
     }
@@ -180,7 +178,8 @@ mod tests {
 
         let path = cr.copy_path();
 
-        assert_path_equals_segments(&path, &vec![PathSegment::MoveTo((1.0, 2.0))]);
+        assert_path_equals_segments(&path,
+                                    &vec![PathSegment::MoveTo((1.0, 2.0))]);
     }
 
     #[test]
@@ -193,14 +192,10 @@ mod tests {
 
         let path = cr.copy_path();
 
-        assert_path_equals_segments(
-            &path,
-            &vec![
-                PathSegment::MoveTo((1.0, 2.0)),
-                PathSegment::LineTo((3.0, 4.0)),
-                PathSegment::MoveTo((5.0, 6.0)),
-            ],
-        );
+        assert_path_equals_segments(&path,
+                                    &vec![PathSegment::MoveTo((1.0, 2.0)),
+                                          PathSegment::LineTo((3.0, 4.0)),
+                                          PathSegment::MoveTo((5.0, 6.0))]);
     }
 
     #[test]
@@ -215,14 +210,10 @@ mod tests {
         // Note that Cairo represents a close_path as closepath+moveto,
         // so that the next subpath will have a starting point,
         // from the extra moveto.
-        assert_path_equals_segments(
-            &path,
-            &vec![
-                PathSegment::MoveTo((1.0, 2.0)),
-                PathSegment::ClosePath,
-                PathSegment::MoveTo((1.0, 2.0)),
-            ],
-        );
+        assert_path_equals_segments(&path,
+                                    &vec![PathSegment::MoveTo((1.0, 2.0)),
+                                          PathSegment::ClosePath,
+                                          PathSegment::MoveTo((1.0, 2.0))]);
     }
     #[test]
     fn curveto_closed_subpath_lineto() {
@@ -235,16 +226,12 @@ mod tests {
 
         let path = cr.copy_path();
 
-        assert_path_equals_segments(
-            &path,
-            &vec![
-                PathSegment::MoveTo((1.0, 2.0)),
-                PathSegment::CurveTo((3.0, 4.0), (5.0, 6.0), (7.0, 8.0)),
-                PathSegment::ClosePath,
-                PathSegment::MoveTo((1.0, 2.0)),
-                PathSegment::LineTo((9.0, 10.0)),
-            ],
-        );
+        assert_path_equals_segments(&path,
+                                    &vec![PathSegment::MoveTo((1.0, 2.0)),
+                                          PathSegment::CurveTo((3.0, 4.0), (5.0, 6.0), (7.0, 8.0)),
+                                          PathSegment::ClosePath,
+                                          PathSegment::MoveTo((1.0, 2.0)),
+                                          PathSegment::LineTo((9.0, 10.0))]);
     }
 
 }

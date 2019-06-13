@@ -47,62 +47,80 @@ macro_rules! gvalue_impl {
 
         impl glib::value::SetValue for $name {
             unsafe fn set_value(v: &mut glib::value::Value, s: &Self) {
-                gobject_ffi::g_value_set_boxed(
-                    v.to_glib_none_mut().0,
-                    s.to_glib_none().0 as glib_ffi::gpointer,
-                );
+                gobject_ffi::g_value_set_boxed(v.to_glib_none_mut().0, s.to_glib_none().0 as glib_ffi::gpointer);
             }
         }
 
         impl glib::value::SetValueOptional for $name {
             unsafe fn set_value_optional(v: &mut glib::value::Value, s: Option<&Self>) {
                 if let Some(s) = s {
-                    gobject_ffi::g_value_set_boxed(
-                        v.to_glib_none_mut().0,
-                        s.to_glib_none().0 as glib_ffi::gpointer,
-                    );
+                    gobject_ffi::g_value_set_boxed(v.to_glib_none_mut().0, s.to_glib_none().0 as glib_ffi::gpointer);
                 } else {
                     gobject_ffi::g_value_set_boxed(v.to_glib_none_mut().0, ::std::ptr::null_mut());
                 }
             }
         }
-    };
+    }
 }
 
 pub use user_data::UserDataKey;
 
-pub use context::{Context, RectangleList};
+pub use context::{
+    Context,
+    RectangleList,
+};
 
-pub use paths::{Path, PathSegment, PathSegments};
+pub use paths::{
+    Path,
+    PathSegments,
+    PathSegment
+};
 
 pub use device::Device;
 
 pub use enums::*;
 
-pub use error::{BorrowError, IoError};
+pub use error::{
+    BorrowError,
+    IoError,
+};
 
 pub use patterns::{
-    Gradient,
-
-    // Structs
-    LinearGradient,
     // Enums
     Pattern,
     // Traits
     PatternTrait,
+    Gradient,
+
+    // Structs
+    LinearGradient,
     RadialGradient,
     SolidPattern,
     SurfacePattern,
 };
 
-pub use patterns::Mesh;
-
-pub use font::{
-    FontExtents, FontFace, FontOptions, FontSlant, FontType, FontWeight, Glyph, ScaledFont,
-    TextCluster, TextExtents,
+pub use patterns::{
+    Mesh,
 };
 
-pub use matrices::{Matrix, MatrixTrait};
+pub use font::{
+    FontFace,
+    FontType,
+    FontSlant,
+    FontWeight,
+    ScaledFont,
+    FontOptions,
+
+    Glyph,
+    FontExtents,
+    TextExtents,
+    TextCluster,
+};
+
+pub use matrices::{
+    Matrix,
+    MatrixTrait,
+};
 
 pub use recording_surface::RecordingSurface;
 pub use rectangle::Rectangle;
@@ -110,34 +128,44 @@ pub use rectangle_int::RectangleInt;
 
 pub use region::Region;
 
-pub use surface::{MappedImageSurface, Surface, SurfaceExt};
+pub use surface::{
+    MappedImageSurface,
+    Surface,
+    SurfaceExt,
+};
 
-pub use image_surface::{ImageSurface, ImageSurfaceData};
+pub use image_surface::{
+    ImageSurface,
+    ImageSurfaceData,
+};
 
 #[cfg(any(feature = "xcb", feature = "dox"))]
 pub use xcb::{
-    XCBConnection, XCBDrawable, XCBPixmap, XCBRenderPictFormInfo, XCBScreen, XCBSurface,
+    XCBConnection,
+    XCBSurface,
+    XCBDrawable,
+    XCBPixmap,
+    XCBRenderPictFormInfo,
+    XCBScreen,
     XCBVisualType,
 };
 
 pub mod prelude;
 
-#[macro_use]
-mod user_data;
+#[macro_use] mod user_data;
 mod constants;
 pub use constants::*;
 mod utils;
 pub use utils::*;
 
+mod font;
 mod context;
 mod device;
 mod enums;
 mod error;
-mod font;
 mod image_surface;
 #[cfg(any(feature = "png", feature = "dox"))]
 mod image_surface_png;
-mod matrices;
 mod paths;
 mod patterns;
 mod recording_surface;
@@ -145,17 +173,18 @@ mod rectangle;
 mod rectangle_int;
 mod region;
 mod surface;
+mod matrices;
 #[cfg(any(feature = "xcb", feature = "dox"))]
 mod xcb;
 
-#[cfg(any(feature = "pdf", feature = "dox"))]
-pub mod pdf;
-#[cfg(any(feature = "ps", feature = "dox"))]
-pub mod ps;
 #[cfg(any(feature = "pdf", feature = "svg", feature = "ps", feature = "dox"))]
 mod support;
+#[cfg(any(feature = "pdf", feature = "dox"))]
+pub mod pdf;
 #[cfg(any(feature = "svg", feature = "dox"))]
 pub mod svg;
+#[cfg(any(feature = "ps", feature = "dox"))]
+pub mod ps;
 
 #[cfg(any(target_os = "macos", target_os = "ios", feature = "dox"))]
 mod quartz_surface;

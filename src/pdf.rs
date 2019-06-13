@@ -2,22 +2,23 @@
 // See the COPYRIGHT file at the top-level directory of this distribution.
 // Licensed under the MIT license, see the LICENSE file or <http://opensource.org/licenses/MIT>
 
-use std::ffi::{CStr, CString};
-use std::fmt;
-use std::io;
 use std::mem;
+use std::ffi::{CStr, CString};
 use std::ops::Deref;
 use std::path::Path;
+use std::io;
+use std::fmt;
 
-use enums::PdfVersion;
-#[cfg(any(all(feature = "pdf", feature = "v1_16"), feature = "dox"))]
-use enums::{PdfMetadata, PdfOutline};
 use ffi;
-use support::{self, FromRawSurface};
+#[cfg(any(all(feature = "pdf", feature = "v1_16"), feature = "dox"))]
+use ::enums::{PdfOutline, PdfMetadata};
+use ::enums::PdfVersion;
 use surface::Surface;
+use support::{self, FromRawSurface};
 
 #[cfg(feature = "use_glib")]
 use glib::translate::*;
+
 
 pub fn get_versions() -> Vec<PdfVersion> {
     let vers_slice = unsafe {
@@ -34,8 +35,7 @@ pub fn get_versions() -> Vec<PdfVersion> {
 pub fn version_to_string(version: PdfVersion) -> Option<&'static str> {
     unsafe {
         let res = ffi::cairo_pdf_version_to_string(version.into());
-        res.as_ref()
-            .and_then(|cstr| CStr::from_ptr(cstr as _).to_str().ok())
+        res.as_ref().and_then(|cstr| CStr::from_ptr(cstr as _).to_str().ok())
     }
 }
 
@@ -46,9 +46,7 @@ pub struct File {
 
 impl FromRawSurface for File {
     unsafe fn from_raw_surface(surface: *mut ffi::cairo_surface_t) -> File {
-        File {
-            inner: Surface::from_raw_full(surface),
-        }
+        File { inner: Surface::from_raw_full(surface) }
     }
 }
 
@@ -64,7 +62,8 @@ impl File {
 
     pub fn restrict(&self, version: PdfVersion) {
         unsafe {
-            ffi::cairo_pdf_surface_restrict_to_version(self.inner.to_raw_none(), version.into());
+            ffi::cairo_pdf_surface_restrict_to_version(self.inner.to_raw_none(),
+                                                       version.into());
         }
     }
 
@@ -78,11 +77,7 @@ impl File {
     pub fn set_metadata(&self, metadata: PdfMetadata, value: &str) {
         let value = CString::new(value).unwrap();
         unsafe {
-            ffi::cairo_pdf_surface_set_metadata(
-                self.inner.to_raw_none(),
-                metadata.into(),
-                value.as_ptr(),
-            );
+            ffi::cairo_pdf_surface_set_metadata(self.inner.to_raw_none(), metadata.into(), value.as_ptr());
         }
     }
 
@@ -97,22 +92,12 @@ impl File {
     #[cfg(any(all(feature = "pdf", feature = "v1_16"), feature = "dox"))]
     pub fn set_thumbnail_size(&self, width: i32, height: i32) {
         unsafe {
-            ffi::cairo_pdf_surface_set_thumbnail_size(
-                self.inner.to_raw_none(),
-                width as _,
-                height as _,
-            );
+            ffi::cairo_pdf_surface_set_thumbnail_size(self.inner.to_raw_none(), width as _, height as _);
         }
     }
 
     #[cfg(any(all(feature = "pdf", feature = "v1_16"), feature = "dox"))]
-    pub fn add_outline(
-        &self,
-        parent_id: i32,
-        name: &str,
-        link_attribs: &str,
-        flags: PdfOutline,
-    ) -> i32 {
+    pub fn add_outline(&self, parent_id: i32, name: &str, link_attribs: &str, flags: PdfOutline) -> i32 {
         let name = CString::new(name).unwrap();
         let link_attribs = CString::new(link_attribs).unwrap();
 
@@ -122,7 +107,7 @@ impl File {
                 parent_id,
                 name.as_ptr(),
                 link_attribs.as_ptr(),
-                flags.bits() as _,
+                flags.bits() as _
             ) as _
         }
     }
@@ -144,9 +129,7 @@ impl Deref for File {
 
 impl AsRef<File> for File {
     // This is included in order to be able to be generic over PDF surfaces
-    fn as_ref(&self) -> &File {
-        self
-    }
+    fn as_ref(&self) -> &File { self }
 }
 
 #[cfg(feature = "use_glib")]
@@ -164,9 +147,7 @@ impl<'a> ToGlibPtr<'a, *mut ffi::cairo_surface_t> for File {
 impl FromGlibPtrNone<*mut ffi::cairo_surface_t> for File {
     #[inline]
     unsafe fn from_glib_none(ptr: *mut ffi::cairo_surface_t) -> File {
-        File {
-            inner: from_glib_none(ptr),
-        }
+        File { inner: from_glib_none(ptr) }
     }
 }
 
@@ -174,9 +155,7 @@ impl FromGlibPtrNone<*mut ffi::cairo_surface_t> for File {
 impl FromGlibPtrBorrow<*mut ffi::cairo_surface_t> for File {
     #[inline]
     unsafe fn from_glib_borrow(ptr: *mut ffi::cairo_surface_t) -> File {
-        File {
-            inner: from_glib_borrow(ptr),
-        }
+        File { inner: from_glib_borrow(ptr) }
     }
 }
 
@@ -194,6 +173,7 @@ impl fmt::Display for File {
     }
 }
 
+
 #[derive(Debug)]
 pub struct Writer<W: io::Write> {
     writer: support::Writer<File, W>,
@@ -201,22 +181,14 @@ pub struct Writer<W: io::Write> {
 
 impl<W: io::Write> Writer<W> {
     pub fn new(width: f64, height: f64, writer: W) -> Writer<W> {
-        let writer = support::Writer::new(
-            ffi::cairo_pdf_surface_create_for_stream,
-            width,
-            height,
-            writer,
-        );
+        let writer = support::Writer::new(ffi::cairo_pdf_surface_create_for_stream,
+            width, height, writer);
 
         Writer { writer }
     }
 
-    pub fn writer(&self) -> &W {
-        self.writer.writer()
-    }
-    pub fn writer_mut(&mut self) -> &mut W {
-        self.writer.writer_mut()
-    }
+    pub fn writer(&self) -> &W { self.writer.writer() }
+    pub fn writer_mut(&mut self) -> &mut W { self.writer.writer_mut() }
 
     pub fn finish(self) -> W {
         self.writer.finish()
@@ -266,6 +238,7 @@ impl<W: io::Write> fmt::Display for Writer<W> {
     }
 }
 
+
 #[derive(Debug)]
 pub struct RefWriter<'w, W: io::Write + 'w> {
     writer: support::RefWriter<'w, File, W>,
@@ -273,12 +246,8 @@ pub struct RefWriter<'w, W: io::Write + 'w> {
 
 impl<'w, W: io::Write + 'w> RefWriter<'w, W> {
     pub fn new(width: f64, height: f64, writer: &'w mut W) -> RefWriter<'w, W> {
-        let writer = support::RefWriter::new(
-            ffi::cairo_pdf_surface_create_for_stream,
-            width,
-            height,
-            writer,
-        );
+        let writer = support::RefWriter::new(ffi::cairo_pdf_surface_create_for_stream,
+            width, height, writer);
 
         RefWriter { writer }
     }
@@ -321,11 +290,12 @@ impl<'w, W: io::Write + 'w> fmt::Display for RefWriter<'w, W> {
     }
 }
 
+
 #[cfg(test)]
 mod test {
     use super::*;
-    use context::*;
     use surface::SurfaceExt;
+    use context::*;
     use tempfile::tempfile;
 
     fn draw<T: AsRef<File>>(surface: &T) {
@@ -412,9 +382,7 @@ mod test {
                 Ok(buf.len())
             }
 
-            fn flush(&mut self) -> io::Result<()> {
-                Ok(())
-            }
+            fn flush(&mut self) -> io::Result<()> { Ok(()) }
         }
 
         let custom_writer = CustomWriter(0);

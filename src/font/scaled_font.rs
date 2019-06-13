@@ -1,12 +1,23 @@
-use ffi;
 #[cfg(feature = "use_glib")]
 use glib::translate::*;
+use ffi;
 use std::ffi::CString;
 use std::ptr;
 
-use enums::{FontType, Status};
-use ffi::{FontExtents, Glyph, TextCluster, TextExtents};
-use matrices::{Matrix, MatrixTrait};
+use ::enums::{
+    FontType,
+    Status,
+};
+use ::matrices::{
+    Matrix,
+    MatrixTrait
+};
+use ffi::{
+    FontExtents,
+    Glyph,
+    TextCluster,
+    TextExtents
+};
 
 use super::{FontFace, FontOptions};
 
@@ -27,19 +38,9 @@ glib_wrapper! {
 pub struct ScaledFont(*mut ffi::cairo_scaled_font_t);
 
 impl ScaledFont {
-    pub fn new(
-        font_face: &FontFace,
-        font_matrix: &Matrix,
-        ctm: &Matrix,
-        options: &FontOptions,
-    ) -> ScaledFont {
+    pub fn new(font_face: &FontFace, font_matrix: &Matrix, ctm: &Matrix, options: &FontOptions) -> ScaledFont {
         let scaled_font: ScaledFont = unsafe {
-            ScaledFont::from_raw_full(ffi::cairo_scaled_font_create(
-                font_face.to_raw_none(),
-                font_matrix,
-                ctm,
-                options.to_raw_none(),
-            ))
+            ScaledFont::from_raw_full(ffi::cairo_scaled_font_create(font_face.to_raw_none(), font_matrix, ctm, options.to_raw_none()))
         };
         scaled_font.ensure_status();
         scaled_font
@@ -79,16 +80,22 @@ impl ScaledFont {
     }
 
     pub fn ensure_status(&self) {
-        let status = unsafe { ffi::cairo_scaled_font_status(self.to_raw_none()) };
+        let status = unsafe {
+            ffi::cairo_scaled_font_status(self.to_raw_none())
+        };
         Status::from(status).ensure_valid()
     }
 
     pub fn get_type(&self) -> FontType {
-        unsafe { FontType::from(ffi::cairo_scaled_font_get_type(self.to_raw_none())) }
+        unsafe {
+            FontType::from(ffi::cairo_scaled_font_get_type(self.to_raw_none()))
+        }
     }
 
     pub fn get_reference_count(&self) -> usize {
-        unsafe { ffi::cairo_scaled_font_get_reference_count(self.to_raw_none()) as usize }
+        unsafe {
+            ffi::cairo_scaled_font_get_reference_count(self.to_raw_none()) as usize
+        }
     }
 
     pub fn extents(&self) -> FontExtents {
@@ -100,7 +107,9 @@ impl ScaledFont {
             max_y_advance: 0.0,
         };
 
-        unsafe { ffi::cairo_scaled_font_extents(self.to_raw_none(), &mut extents) }
+        unsafe {
+            ffi::cairo_scaled_font_extents(self.to_raw_none(), &mut extents)
+        }
 
         extents
     }
@@ -134,12 +143,7 @@ impl ScaledFont {
         };
 
         unsafe {
-            ffi::cairo_scaled_font_glyph_extents(
-                self.to_raw_none(),
-                glyphs.as_ptr(),
-                glyphs.len() as i32,
-                &mut extents,
-            )
+            ffi::cairo_scaled_font_glyph_extents(self.to_raw_none(), glyphs.as_ptr(), glyphs.len() as i32, &mut extents)
         }
 
         extents
@@ -169,8 +173,7 @@ impl ScaledFont {
                 &mut glyph_count,
                 &mut clusters_ptr,
                 &mut cluster_count,
-                &mut cluster_flags,
-            );
+                &mut cluster_flags);
 
             Status::from(status).ensure_valid();
 
@@ -202,7 +205,9 @@ impl ScaledFont {
     }
 
     pub fn get_font_face(&self) -> FontFace {
-        unsafe { FontFace::from_raw_none(ffi::cairo_scaled_font_get_font_face(self.to_raw_none())) }
+        unsafe {
+            FontFace::from_raw_none(ffi::cairo_scaled_font_get_font_face(self.to_raw_none()))
+        }
     }
 
     pub fn get_font_options(&self) -> FontOptions {
@@ -218,7 +223,9 @@ impl ScaledFont {
     pub fn get_font_matrix(&self) -> Matrix {
         let mut matrix = Matrix::null();
 
-        unsafe { ffi::cairo_scaled_font_get_font_matrix(self.to_raw_none(), &mut matrix) }
+        unsafe {
+            ffi::cairo_scaled_font_get_font_matrix(self.to_raw_none(), &mut matrix)
+        }
 
         matrix
     }
@@ -226,7 +233,9 @@ impl ScaledFont {
     pub fn get_ctm(&self) -> Matrix {
         let mut matrix = Matrix::null();
 
-        unsafe { ffi::cairo_scaled_font_get_ctm(self.to_raw_none(), &mut matrix) }
+        unsafe {
+            ffi::cairo_scaled_font_get_ctm(self.to_raw_none(), &mut matrix)
+        }
 
         matrix
     }
@@ -234,7 +243,9 @@ impl ScaledFont {
     pub fn get_scale_matrix(&self) -> Matrix {
         let mut matrix = Matrix::null();
 
-        unsafe { ffi::cairo_scaled_font_get_scale_matrix(self.to_raw_none(), &mut matrix) }
+        unsafe {
+            ffi::cairo_scaled_font_get_scale_matrix(self.to_raw_none(), &mut matrix)
+        }
 
         matrix
     }
@@ -258,6 +269,8 @@ impl Drop for ScaledFont {
 #[cfg(not(feature = "use_glib"))]
 impl Clone for ScaledFont {
     fn clone(&self) -> ScaledFont {
-        unsafe { ScaledFont::from_raw_none(self.to_raw_none()) }
+        unsafe {
+            ScaledFont::from_raw_none(self.to_raw_none())
+        }
     }
 }

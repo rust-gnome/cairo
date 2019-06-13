@@ -2,14 +2,17 @@
 // See the COPYRIGHT file at the top-level directory of this distribution.
 // Licensed under the MIT license, see the LICENSE file or <http://opensource.org/licenses/MIT>
 
-use std::fmt;
 use std::ops::Deref;
+use std::fmt;
 
-use enums::{Content, SurfaceType};
-use ffi;
 #[cfg(feature = "use_glib")]
 use glib::translate::*;
-use rectangle::Rectangle;
+use ffi;
+use ::enums::{
+    Content,
+    SurfaceType,
+};
+use ::rectangle::Rectangle;
 
 use surface::{Surface, SurfaceExt};
 
@@ -47,9 +50,8 @@ impl RecordingSurface {
     pub fn get_extents(&self) -> Option<Rectangle> {
         unsafe {
             let rectangle: Rectangle = ::std::mem::zeroed();
-            if ffi::cairo_recording_surface_get_extents(self.to_raw_none(), rectangle.to_raw_none())
-                .as_bool()
-            {
+            if ffi::cairo_recording_surface_get_extents(self.to_raw_none(),
+                                                        rectangle.to_raw_none()).as_bool() {
                 Some(rectangle)
             } else {
                 None
@@ -64,13 +66,9 @@ impl RecordingSurface {
         let mut height = 0.;
 
         unsafe {
-            ffi::cairo_recording_surface_ink_extents(
-                self.to_raw_none(),
-                &mut x0,
-                &mut y0,
-                &mut width,
-                &mut height,
-            );
+            ffi::cairo_recording_surface_ink_extents(self.to_raw_none(),
+                                                     &mut x0, &mut y0,
+                                                     &mut width, &mut height);
         }
         (x0, y0, width, height)
     }
@@ -101,11 +99,7 @@ impl FromGlibPtrFull<*mut ffi::cairo_surface_t> for RecordingSurface {
 }
 
 #[cfg(feature = "use_glib")]
-gvalue_impl!(
-    RecordingSurface,
-    ffi::cairo_surface_t,
-    ffi::gobject::cairo_gobject_surface_get_type
-);
+gvalue_impl!(RecordingSurface, ffi::cairo_surface_t, ffi::gobject::cairo_gobject_surface_get_type);
 
 impl Deref for RecordingSurface {
     type Target = Surface;

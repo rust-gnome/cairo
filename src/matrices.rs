@@ -2,9 +2,9 @@
 // See the COPYRIGHT file at the top-level directory of this distribution.
 // Licensed under the MIT license, see the LICENSE file or <http://opensource.org/licenses/MIT>
 
-use enums::Status;
-use ffi;
 pub use ffi::Matrix;
+use ffi;
+use ::enums::Status;
 
 pub trait MatrixTrait {
     fn null() -> Matrix;
@@ -23,7 +23,7 @@ pub trait MatrixTrait {
 
 impl MatrixTrait for Matrix {
     fn null() -> Matrix {
-        Matrix {
+        Matrix{
             xx: 0.0,
             yx: 0.0,
             xy: 0.0,
@@ -33,7 +33,7 @@ impl MatrixTrait for Matrix {
         }
     }
 
-    fn new(xx: f64, yx: f64, xy: f64, yy: f64, x0: f64, y0: f64) -> Matrix {
+    fn new(xx: f64, yx: f64, xy: f64, yy: f64, x0: f64, y0: f64) -> Matrix{
         let mut matrix = Matrix::null();
         matrix.init(xx, yx, xy, yy, x0, y0);
         matrix
@@ -56,30 +56,42 @@ impl MatrixTrait for Matrix {
     }
 
     fn init(&mut self, xx: f64, yx: f64, xy: f64, yy: f64, x0: f64, y0: f64) {
-        unsafe { ffi::cairo_matrix_init(self, xx, yx, xy, yy, x0, y0) }
+        unsafe {
+            ffi::cairo_matrix_init(self, xx, yx, xy, yy, x0, y0)
+        }
     }
 
     fn translate(&mut self, tx: f64, ty: f64) {
-        unsafe { ffi::cairo_matrix_translate(self, tx, ty) }
+        unsafe {
+            ffi::cairo_matrix_translate(self, tx, ty)
+        }
     }
 
     fn scale(&mut self, sx: f64, sy: f64) {
-        unsafe { ffi::cairo_matrix_scale(self, sx, sy) }
+        unsafe {
+            ffi::cairo_matrix_scale(self, sx, sy)
+        }
     }
 
     fn rotate(&mut self, angle: f64) {
-        unsafe { ffi::cairo_matrix_rotate(self, angle) }
+        unsafe {
+            ffi::cairo_matrix_rotate(self, angle)
+        }
     }
 
     fn invert(&mut self) {
-        let result = unsafe { ffi::cairo_matrix_invert(self) };
+        let result = unsafe{
+            ffi::cairo_matrix_invert(self)
+        };
         Status::from(result).ensure_valid();
     }
 
     fn try_invert(&self) -> Result<Matrix, Status> {
         let mut matrix = *self;
 
-        let result = unsafe { Status::from(ffi::cairo_matrix_invert(&mut matrix)) };
+        let result = unsafe {
+            Status::from(ffi::cairo_matrix_invert(&mut matrix))
+        };
 
         match result {
             Status::Success => Ok(matrix),
@@ -87,7 +99,7 @@ impl MatrixTrait for Matrix {
         }
     }
 
-    fn transform_distance(&self, _dx: f64, _dy: f64) -> (f64, f64) {
+    fn transform_distance(&self, _dx: f64, _dy: f64) -> (f64, f64){
         let mut dx = _dx;
         let mut dy = _dy;
 
@@ -97,7 +109,7 @@ impl MatrixTrait for Matrix {
         (dx, dy)
     }
 
-    fn transform_point(&self, _x: f64, _y: f64) -> (f64, f64) {
+    fn transform_point(&self, _x: f64, _y: f64) -> (f64, f64){
         let mut x = _x;
         let mut y = _y;
 

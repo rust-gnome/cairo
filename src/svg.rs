@@ -2,22 +2,23 @@
 // See the COPYRIGHT file at the top-level directory of this distribution.
 // Licensed under the MIT license, see the LICENSE file or <http://opensource.org/licenses/MIT>
 
-use std::ffi::{CStr, CString};
-use std::fmt;
-use std::io;
 use std::mem;
+use std::ffi::{CStr, CString};
 use std::ops::Deref;
 use std::path::Path;
+use std::io;
+use std::fmt;
 
-#[cfg(any(all(feature = "svg", feature = "v1_16"), feature = "dox"))]
-use enums::SvgUnit;
-use enums::SvgVersion;
 use ffi;
-use support::{self, FromRawSurface};
+use ::enums::SvgVersion;
+#[cfg(any(all(feature = "svg", feature = "v1_16"), feature = "dox"))]
+use ::enums::SvgUnit;
 use surface::Surface;
+use support::{self, FromRawSurface};
 
 #[cfg(feature = "use_glib")]
 use glib::translate::*;
+
 
 pub fn get_versions() -> Vec<SvgVersion> {
     let vers_slice = unsafe {
@@ -34,8 +35,7 @@ pub fn get_versions() -> Vec<SvgVersion> {
 pub fn version_to_string(version: SvgVersion) -> Option<&'static str> {
     unsafe {
         let res = ffi::cairo_svg_version_to_string(version.into());
-        res.as_ref()
-            .and_then(|cstr| CStr::from_ptr(cstr as _).to_str().ok())
+        res.as_ref().and_then(|cstr| CStr::from_ptr(cstr as _).to_str().ok())
     }
 }
 
@@ -46,9 +46,7 @@ pub struct File {
 
 impl FromRawSurface for File {
     unsafe fn from_raw_surface(surface: *mut ffi::cairo_surface_t) -> File {
-        File {
-            inner: Surface::from_raw_full(surface),
-        }
+        File { inner: Surface::from_raw_full(surface) }
     }
 }
 
@@ -78,9 +76,7 @@ impl File {
     #[cfg(any(all(feature = "svg", feature = "v1_16"), feature = "dox"))]
     pub fn get_document_unit(&self) -> SvgUnit {
         unsafe {
-            SvgUnit::from(ffi::cairo_svg_surface_get_document_unit(
-                self.inner.to_raw_none(),
-            ))
+            SvgUnit::from(ffi::cairo_svg_surface_get_document_unit(self.inner.to_raw_none()))
         }
     }
 }
@@ -101,9 +97,7 @@ impl Deref for File {
 
 impl AsRef<File> for File {
     // This is included in order to be able to be generic over SVG surfaces
-    fn as_ref(&self) -> &File {
-        self
-    }
+    fn as_ref(&self) -> &File { self }
 }
 
 #[cfg(feature = "use_glib")]
@@ -121,9 +115,7 @@ impl<'a> ToGlibPtr<'a, *mut ffi::cairo_surface_t> for File {
 impl FromGlibPtrNone<*mut ffi::cairo_surface_t> for File {
     #[inline]
     unsafe fn from_glib_none(ptr: *mut ffi::cairo_surface_t) -> File {
-        File {
-            inner: from_glib_borrow(ptr),
-        }
+        File { inner: from_glib_borrow(ptr) }
     }
 }
 
@@ -131,9 +123,7 @@ impl FromGlibPtrNone<*mut ffi::cairo_surface_t> for File {
 impl FromGlibPtrBorrow<*mut ffi::cairo_surface_t> for File {
     #[inline]
     unsafe fn from_glib_borrow(ptr: *mut ffi::cairo_surface_t) -> File {
-        File {
-            inner: from_glib_borrow(ptr),
-        }
+        File { inner: from_glib_borrow(ptr) }
     }
 }
 
@@ -151,6 +141,7 @@ impl fmt::Display for File {
     }
 }
 
+
 #[derive(Debug)]
 pub struct Writer<W: io::Write> {
     writer: support::Writer<File, W>,
@@ -158,22 +149,14 @@ pub struct Writer<W: io::Write> {
 
 impl<W: io::Write> Writer<W> {
     pub fn new(width: f64, height: f64, writer: W) -> Writer<W> {
-        let writer = support::Writer::new(
-            ffi::cairo_svg_surface_create_for_stream,
-            width,
-            height,
-            writer,
-        );
+        let writer = support::Writer::new(ffi::cairo_svg_surface_create_for_stream,
+            width, height, writer);
 
         Writer { writer }
     }
 
-    pub fn writer(&self) -> &W {
-        self.writer.writer()
-    }
-    pub fn writer_mut(&mut self) -> &mut W {
-        self.writer.writer_mut()
-    }
+    pub fn writer(&self) -> &W { self.writer.writer() }
+    pub fn writer_mut(&mut self) -> &mut W { self.writer.writer_mut() }
 
     pub fn finish(self) -> W {
         self.writer.finish()
@@ -223,6 +206,7 @@ impl<W: io::Write> fmt::Display for Writer<W> {
     }
 }
 
+
 #[derive(Debug)]
 pub struct RefWriter<'w, W: io::Write + 'w> {
     writer: support::RefWriter<'w, File, W>,
@@ -230,12 +214,8 @@ pub struct RefWriter<'w, W: io::Write + 'w> {
 
 impl<'w, W: io::Write + 'w> RefWriter<'w, W> {
     pub fn new(width: f64, height: f64, writer: &'w mut W) -> RefWriter<'w, W> {
-        let writer = support::RefWriter::new(
-            ffi::cairo_svg_surface_create_for_stream,
-            width,
-            height,
-            writer,
-        );
+        let writer = support::RefWriter::new(ffi::cairo_svg_surface_create_for_stream,
+            width, height, writer);
 
         RefWriter { writer }
     }
@@ -278,11 +258,12 @@ impl<'w, W: io::Write + 'w> fmt::Display for RefWriter<'w, W> {
     }
 }
 
+
 #[cfg(test)]
 mod test {
     use super::*;
-    use context::*;
     use surface::SurfaceExt;
+    use context::*;
     use tempfile::tempfile;
 
     fn draw<T: AsRef<File>>(surface: &T) {
@@ -291,13 +272,13 @@ mod test {
         cr.set_line_width(25.0);
 
         cr.set_source_rgba(1.0, 0.0, 0.0, 0.5);
-        cr.line_to(0., 0.);
-        cr.line_to(100., 100.);
+        cr.line_to(0.,0.);
+        cr.line_to(100.,100.);
         cr.stroke();
 
         cr.set_source_rgba(0.0, 0.0, 1.0, 0.5);
-        cr.line_to(0., 100.);
-        cr.line_to(100., 0.);
+        cr.line_to(0.,100.);
+        cr.line_to(100.,0.);
         cr.stroke();
     }
 
@@ -375,15 +356,13 @@ mod test {
 
         impl io::Write for CustomWriter {
             fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-                self.1.write(buf)?;
+                self.1.write(buf) ?;
 
                 self.0 += buf.len();
                 Ok(buf.len())
             }
 
-            fn flush(&mut self) -> io::Result<()> {
-                Ok(())
-            }
+            fn flush(&mut self) -> io::Result<()> { Ok(()) }
         }
 
         let file = tempfile().expect("tempfile failed");
