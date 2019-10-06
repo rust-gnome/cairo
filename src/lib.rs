@@ -2,6 +2,63 @@
 // See the COPYRIGHT file at the top-level directory of this distribution.
 // Licensed under the MIT license, see the LICENSE file or <http://opensource.org/licenses/MIT>
 
+//! # Cairo bindings
+//!
+//! ## Crate features
+//!
+//! ### Default-on features
+//!
+//! * **use_glib** -
+//!   Explanation
+//!
+//! ### Fileformat features
+//!
+//! * **png** -
+//!   Explanation
+//!
+//! * **pdf** -
+//!   Explanation
+//!
+//! * **svg** -
+//!   Explanation
+//!
+//! * **ps** -
+//!   Explanation
+//!
+//! ### Cairo API version features
+//!
+//! * **v1_14** -
+//!   Explanation
+//!
+//! * **v1_16** -
+//!   Explanation
+//!
+//! ### Documentation features
+//!
+//! * **purge-lgpl-docs** -
+//!   Explanation
+//!
+//! * **embed-lgpl-docs** -
+//!   Explanation
+//!
+//! * **dox** -
+//!   Explanation
+//!
+//! ### X window features
+//!
+//! * **xcb** -
+//!   Explanation
+//!
+//! * **xlib** -
+//!   Explanation
+//!
+//! ### Windows API features
+//!
+//! * **win32-surface** -
+//!   Explanation
+//!
+
+
 extern crate cairo_sys as ffi;
 extern crate libc;
 
