@@ -12,7 +12,7 @@
 //! ### Default-on features
 //!
 //! * **use_glib** -
-//!   Use [glib](https://gtk-rs.org/docs/glib/)
+//!   Use with [glib](https://gtk-rs.org/docs/glib/)
 //!
 //! ### Fileformat features
 //!
