@@ -4,58 +4,61 @@
 
 //! # Cairo bindings
 //!
+//!   This library contains safe Rust bindings for [Cairo](https://www.cairographics.org/).
+//!   It is a part of [Gtk-rs](http://gtk-rs.org/).
+//!
 //! ## Crate features
 //!
 //! ### Default-on features
 //!
 //! * **use_glib** -
-//!   Explanation
+//!   Use [glib](https://gtk-rs.org/docs/glib/)
 //!
 //! ### Fileformat features
 //!
 //! * **png** -
-//!   Explanation
+//!   Reading and writing PNG images
 //!
 //! * **pdf** -
-//!   Explanation
+//!   Rendering PDF documents
 //!
 //! * **svg** -
-//!   Explanation
+//!   Rendering SVG documents
 //!
 //! * **ps** -
-//!   Explanation
+//!   Rendering PostScript documents
 //!
 //! ### Cairo API version features
 //!
 //! * **v1_14** -
-//!   Explanation
+//!   Use Cairo 1.14 APIs
 //!
 //! * **v1_16** -
-//!   Explanation
+//!   Use Cairo 1.16 APIs
 //!
 //! ### Documentation features
 //!
-//! * **purge-lgpl-docs** -
-//!   Explanation
-//!
 //! * **embed-lgpl-docs** -
-//!   Explanation
+//!   Embed API docs locally
+//!
+//! * **purge-lgpl-docs** -
+//!   Remove API docs again (counterpart to `embed-lgpl-docs`)
 //!
 //! * **dox** -
-//!   Explanation
+//!   Used to keep system dependent items in documentation
 //!
-//! ### X window features
+//! ### X Window features
 //!
 //! * **xcb** -
-//!   Explanation
+//!   X Window System rendering using the XCB library
 //!
 //! * **xlib** -
-//!   Explanation
+//!   X Window System rendering using XLib
 //!
 //! ### Windows API features
 //!
 //! * **win32-surface** -
-//!   Explanation
+//!   Microsoft Windows surface support
 //!
 
 
