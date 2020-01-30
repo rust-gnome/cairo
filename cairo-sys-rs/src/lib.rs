@@ -960,10 +960,10 @@ extern "C" {
     ) -> *mut cairo_surface_t;
     pub fn cairo_surface_create_for_rectangle(
         surface: *mut cairo_surface_t,
-	x: c_double,
-	y: c_double,
-	width: c_double,
-	height: c_double,
+        x: c_double,
+        y: c_double,
+        width: c_double,
+        height: c_double,
     ) -> *mut cairo_surface_t;
     pub fn cairo_surface_get_mime_data(
         surface: *mut cairo_surface_t,
