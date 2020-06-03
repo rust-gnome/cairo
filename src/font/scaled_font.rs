@@ -33,16 +33,14 @@ impl ScaledFont {
         ctm: &Matrix,
         options: &FontOptions,
     ) -> ScaledFont {
-        let scaled_font: ScaledFont = unsafe {
+        unsafe {
             ScaledFont::from_raw_full(ffi::cairo_scaled_font_create(
                 font_face.to_raw_none(),
                 font_matrix.ptr(),
                 ctm.ptr(),
                 options.to_raw_none(),
             ))
-        };
-        scaled_font.ensure_status();
-        scaled_font
+        }
     }
 
     #[cfg(feature = "use_glib")]
