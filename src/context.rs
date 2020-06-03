@@ -167,12 +167,10 @@ impl Context {
 
     pub fn save(&self) {
         unsafe { ffi::cairo_save(self.0.as_ptr()) }
-        self.ensure_status()
     }
 
     pub fn restore(&self) {
         unsafe { ffi::cairo_restore(self.0.as_ptr()) }
-        self.ensure_status()
     }
 
     pub fn get_target(&self) -> Surface {
@@ -211,7 +209,6 @@ impl Context {
         unsafe {
             ffi::cairo_set_source(self.0.as_ptr(), source.to_raw_none());
         }
-        self.ensure_status();
     }
 
     pub fn get_source(&self) -> Pattern {
@@ -226,7 +223,6 @@ impl Context {
 
     pub fn set_antialias(&self, antialias: Antialias) {
         unsafe { ffi::cairo_set_antialias(self.0.as_ptr(), antialias.into()) }
-        self.ensure_status()
     }
 
     pub fn get_antialias(&self) -> Antialias {
@@ -275,7 +271,6 @@ impl Context {
         unsafe {
             ffi::cairo_set_fill_rule(self.0.as_ptr(), fill_rule.into());
         }
-        self.ensure_status();
     }
 
     pub fn get_fill_rule(&self) -> FillRule {
@@ -284,7 +279,6 @@ impl Context {
 
     pub fn set_line_cap(&self, arg: LineCap) {
         unsafe { ffi::cairo_set_line_cap(self.0.as_ptr(), arg.into()) }
-        self.ensure_status();
     }
 
     pub fn get_line_cap(&self) -> LineCap {
@@ -293,7 +287,6 @@ impl Context {
 
     pub fn set_line_join(&self, arg: LineJoin) {
         unsafe { ffi::cairo_set_line_join(self.0.as_ptr(), arg.into()) }
-        self.ensure_status();
     }
 
     pub fn get_line_join(&self) -> LineJoin {
@@ -302,7 +295,6 @@ impl Context {
 
     pub fn set_line_width(&self, arg: f64) {
         unsafe { ffi::cairo_set_line_width(self.0.as_ptr(), arg) }
-        self.ensure_status();
     }
 
     pub fn get_line_width(&self) -> f64 {
@@ -311,7 +303,6 @@ impl Context {
 
     pub fn set_miter_limit(&self, arg: f64) {
         unsafe { ffi::cairo_set_miter_limit(self.0.as_ptr(), arg) }
-        self.ensure_status();
     }
 
     pub fn get_miter_limit(&self) -> f64 {
@@ -330,7 +321,6 @@ impl Context {
 
     pub fn set_tolerance(&self, arg: f64) {
         unsafe { ffi::cairo_set_tolerance(self.0.as_ptr(), arg) }
-        self.ensure_status();
     }
 
     pub fn get_tolerance(&self) -> f64 {
@@ -363,7 +353,6 @@ impl Context {
 
     pub fn reset_clip(&self) {
         unsafe { ffi::cairo_reset_clip(self.0.as_ptr()) }
-        self.ensure_status()
     }
 
     pub fn copy_clip_rectangle_list(&self) -> RectangleList {
