@@ -26,16 +26,14 @@ pub struct FontFace(ptr::NonNull<ffi::cairo_font_face_t>);
 
 impl FontFace {
     pub fn toy_create(family: &str, slant: FontSlant, weight: FontWeight) -> FontFace {
-        let font_face: FontFace = unsafe {
+        unsafe {
             let family = CString::new(family).unwrap();
             FontFace::from_raw_full(ffi::cairo_toy_font_face_create(
                 family.as_ptr(),
                 slant.into(),
                 weight.into(),
             ))
-        };
-        font_face.ensure_status();
-        font_face
+        }
     }
 
     #[cfg(feature = "use_glib")]
